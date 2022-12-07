@@ -40,7 +40,7 @@ def vector_plot(vector_df:pd.DataFrame(), title:str()):
         connectionstyle = "angle,angleA=0,angleB={}".format(ang)
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
         if len(labels[i]) > 0:
-            ax.annotate(labels[i], xy=(x, y), xytext=(1.9*x, 1.5*y),
+            ax.annotate(labels[i], xy=(x, y), xytext=(1.9*x, 1.5*y+(i/30)),
                         horizontalalignment=horizontalalignment, fontsize=20, weight="bold", **kw)
     
     circle1 = plt.Circle( (0,0), 1, color='black')
@@ -55,6 +55,4 @@ def vector_plot(vector_df:pd.DataFrame(), title:str()):
     plt.show()
 
     return fig
-
-pl = vector_plot(df_seq, 'ssAAV::id:1 \n test1')
 
