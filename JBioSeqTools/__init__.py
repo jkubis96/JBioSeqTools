@@ -1,9 +1,11 @@
 print()
-print('Welcome in GEDSpy v.1.4.3 library')
+print('Welcome in JBioSeqTools v.1.0.1 library')
 print('')
 print('Loading required  packages...')
 
-from GEDSpy.zinc import zinc
-from GEDSpy.GOPa import GOPa
+from JBioSeqTools.seq_tools import seq_tools
+from JBioSeqTools.vector_build import vector_build
+from JBioSeqTools.vector_graph import graph_plot
 
-print('GEDSpy is ready to use')
+
+print('JBioSeqTools is ready to use')

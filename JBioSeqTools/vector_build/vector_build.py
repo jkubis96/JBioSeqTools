@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from pandasgui import show
+
 
 
 def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/codons.xlsx?raw=true', vectors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/vectors.xlsx?raw=true', linkers:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/linkers.xlsx?raw=true', regulators:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/regulators.xlsx?raw=true', fluorescence_tag:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/fluorescence_tag.xlsx?raw=true', backbone:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/backbone.xlsx?raw=true', promotors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/promotors.xlsx?raw=true', restriction:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/restriction_enzymes.xlsx?raw=true'):
@@ -16,6 +16,7 @@ def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/
     
     metadata = {'codons':codons, 'vectors':vectors, 'linkers':linkers, 'regulators':regulators, 'fluorescence_tag':fluorescence_tag, 'backbone':backbone, 'promotors':promotors, 'restriction':restriction}
 
+    print('\n Metadata has loaded successfully')
     return metadata
 
 def create_project(project_name:str()):
@@ -30,23 +31,23 @@ def load_transcripts(n:int(), project:dict(), **args):
         check_name = True
         while (check == True or check_name == True):
             if str('ORF' + str(i)) not in args and check == True:
-                globals()[str('ORF' + str(i))] = input('Writte sequence ' + str('ORF'+str(i)) + ': ').replace('\\n', '\n')
+                globals()[str('ORF' + str(i))] = input('Enter sequence ' + str('ORF'+str(i)) + ': ').replace('\\n', '\n')
                 globals()[str('ORF' + str(i))] = ''.join(c.upper() for c in eval(str('ORF' + str(i))) if c.isalpha())
             if str('ORF' + str(i) + '_gen') not in args and check_name == True:
-                globals()[str('ORF' + str(i) + '_gen')] = input('Writte sequence name ' + str('ORF'+str(i)) + ': ')
+                globals()[str('ORF' + str(i) + '_gen')] = input('Enter sequence name ' + str('ORF'+str(i)) + ': ')
                 globals()[str('ORF' + str(i) + '_gen')] = eval(str('ORF' + str(i) + '_gen')).upper()
                 
             if str('ORF'+str(i)) in args:
                 test = args[str('ORF'+str(i))]
                 test = [args[str('ORF'+str(i))][y:y+3] for y in range(0, len(args[str('ORF'+str(i))]), 3)]
                 if ((len(test) == 0) or len(test[-1]) < 3):
-                    print("Wrong sequence " + str(i) + ". No three nucleotides repeat. Load right transcript")
+                    print("\n Wrong sequence " + str(i) + ". The condition of three-nucleotide repeats in the coding sequence is not met.")
                     check = True
                     
                 else:
                     check = False
                 if (len(args[str('ORF' + str(i) + '_gen')]) == 0):
-                    print("Wrong name.  Writte sequence name")
+                    print("\n Wrong name.  Enter sequence name")
                     check_name = True
                     
                 else:
@@ -62,13 +63,13 @@ def load_transcripts(n:int(), project:dict(), **args):
                 test = [globals()[str('ORF'+str(i))][y:y+3] for y in range(0, len(globals()[str('ORF'+str(i))]), 3)]
                 
                 if ((len(test) == 0) or len(test[-1]) < 3):
-                    print("Wrong sequence " + str(i) + ". No three nucleotides repeat. Load right transcript")
+                    print("\n Wrong sequence " + str(i) + ". The condition of three-nucleotide repeats in the coding sequence is not met.")
                     check = True
                     
                 else:
                     check = False
                 if (len(globals()[str('ORF' + str(i) + '_gen')]) == 0):
-                    print("Wrong name.  Writte sequence name")
+                    print("\n Wrong name.  Enter sequence name")
                     check_name = True
                     
                 else:
@@ -108,7 +109,7 @@ def choose_promotor(promotors:pd.DataFrame(), project:dict(), **args):
        
         check = True
         while (check == True):
-            x = input('Write id for promotor: ')
+            x = input('\n Enter id for promotor: ')
             if (locals()['x'] != '' and int(locals()['x']) > 0 and len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(promotors['role'])+1)):
                 if x == str(0):
                     project['elements']['promotor']['sequence'] = ''
@@ -141,7 +142,7 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
                     print('role : ' + str(fluorescence_tag['role'][fluorescence_tag['id'] == lin][lin-1]))
                     print('reference : ' + str(fluorescence_tag['ref'][fluorescence_tag['id'] == lin][lin-1]))
         
-                locals()['x'] = input('Write id for fluorescence tag: ')
+                locals()['x'] = input('\n Enter id for fluorescence tag: ')
                 if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(fluorescence_tag['role'])+1) ):
                     check_f = False
                     if locals()['x'] == str(0):
@@ -163,7 +164,7 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
             if 'fluoroscence_tag_linker' not in args and 'fluoroscence_tag_linker_name' not in args and check_l == True and check_f == False:
                 print('-------------------------------------------------------------')
                 print('id : 0')
-                print('Lack of linker between last protein and fluorescence tag')
+                print('Lack of the linker between the last protein and the fluorescence tag')
                 for lin in linkers['id']:
                     print('-------------------------------------------------------------')
                     print('id : ' + str(lin))
@@ -172,7 +173,7 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
                     print('role : ' + str(linkers['role'][linkers['id'] == lin][lin-1]))
                     
                 
-                locals()['l'] = input('Write id for linker: ')
+                locals()['l'] = input('Enter id for linker: ')
                 
                 if (len(locals()['l']) > 0) and locals()['l'].isnumeric() and (int(locals()['l']) in range(0, len(linkers['role'])+1)):
                     check_l = False
@@ -217,7 +218,7 @@ def choose_linkers(n:int(), linkers:pd.DataFrame(), project:dict(), **args):
             if str('linker' + str(i)) not in args:
                 check = True
                 while (check == True):
-                    locals()['x'] = input('Write id for linker ' + str(i) + ': ')
+                    locals()['x'] = input('\n Enter id for linker between transcripts ' + str(i) +' & ' + str(int(i+1)) + ': ')
                     if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(linkers['role'])+1)):
                         if locals()['x'] == str(0):
                             project['elements']['linkers'][str('linker'+str(i))] = ''
@@ -256,15 +257,15 @@ def choose_enhancer(regulators:pd.DataFrame(), project:dict(), **args):
        
         check = True
         while (check == True):
-            x = input('Write id for regulator: ')
+            x = input('\n Enter id for regulator: ')
             if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(regulators['role'])+1)):
                 if x == str(0):
                     project['elements']['regulators']['enhancer'] = ''
                     project['elements']['regulators']['enhancer_name'] = ''
 
                 else:
-                    project['elements']['regulators']['enhancer'] = str(regulators['name'][regulators['id'] == eval(x)][eval(x)-1])
-                    project['elements']['regulators']['enhancer_name'] = str(regulators['seq'][regulators['id'] == eval(x)][eval(x)-1])
+                    project['elements']['regulators']['enhancer'] = str(regulators['seq'][regulators['id'] == eval(x)][eval(x)-1]) 
+                    project['elements']['regulators']['enhancer_name'] = str(regulators['name'][regulators['id'] == eval(x)][eval(x)-1])
                 
                 check = False
                 
@@ -451,7 +452,7 @@ def choose_transcript_variant(project:dict(), **args):
             
             check = True
             while (check == True):
-                locals()[str('ORF_sv' + str(i+1))] = input('Writte your choose [o/n]: ')
+                locals()[str('ORF_sv' + str(i+1))] = input('\n Writte your choose [o/n]: ')
                 if str('ORF_sv' + str(i+1)) in locals() and locals()[str('ORF_sv' + str(i+1))] == 'o' or str('ORF_sv' + str(i+1)) in locals() and locals()[str('ORF_sv' + str(i+1))] == 'n':
                     check = False
                     
@@ -504,7 +505,7 @@ def check_restriction(sequence:str(), restriction:pd.DataFrame()):
         restriction_df = restriction_df.reset_index()
     
     if len(enzyme_restriction) == 0:
-        print('Any restriction places were found')
+        print('\n Any restriction places were not found')
     
     return enzyme_restriction, restriction_df
 
@@ -525,8 +526,8 @@ def choose_restriction_to_remove(restriction_df:pd.DataFrame(), enzyme_list:list
         check = True
         enzyme_n = 1
         while (check == True):
-            print('Provide enzyme id, if no restriction sites are relevant to your experiment or you have already provided all enzyme ids, write "x"')
-            enzyme = input('Write enzyme '+ str(enzyme_n) + ' id: ')
+            print('\n Provide enzyme id, if no restriction sites are relevant to your experiment or you have already provided all enzyme ids, write "x"')
+            enzyme = input('\n Enter enzyme '+ str(enzyme_n) + ' id: ')
             if len(enzyme) != 0 and not enzyme.isalpha() and int(enzyme) in restriction_df.index:
                 enzyme_n += 1
                 enzyme_list = enzyme_list + restriction_df[1][int(enzyme)]
@@ -535,7 +536,7 @@ def choose_restriction_to_remove(restriction_df:pd.DataFrame(), enzyme_list:list
         
         enzyme_list = np.unique(enzyme_list)
     else:
-        print('Any restriction places to choose')
+        print('\n Lack of restriction places to choose')
         
     return np.asarray(enzyme_list)       
 
@@ -667,7 +668,7 @@ def repair_sequences(sequence:str(), codons:pd.DataFrame, restriction_df:pd.Data
             restriction_df = restriction_df.reset_index()
     
         if len(enzyme_restriction) == 0:
-            print('\n Any new restriction places were created')
+            print('\n Any new restriction places were not created')
         else:
             print('\n New restriction places were created:')
             for name in enzyme_restriction['name']:
@@ -703,7 +704,7 @@ def choose_restriction_vector(project:dict(), restriction:pd.DataFrame()):
         index = pd.DataFrame(project['transcripts']['sequences']['enzymes_df'][trans])
         index.index = index[1]
         index.index = range(0, len(index[1]))
-        print("Choose enzymes for " + str(project['transcripts']['sequences']['ORF']))
+        print("\n Choose enzymes for " + str(project['transcripts']['sequences']['ORF']))
         project['transcripts']['sequences']['enzymes'][trans] = choose_restriction_to_remove(index).tolist()
         
     return project
@@ -773,14 +774,14 @@ def eval_vector(project:dict(), vectors:pd.DataFrame(), vector_type:str(), **arg
         elif n == 'fluorescence':
              locals()['fluorescence'] = project['elements'][n]['sequence']
              locals()['fluorescence_name'] = project['elements'][n]['name']
-             locals()['fluoroscence_tag_linker_name'] = project['elements'][n]['linker']
-             locals()['fluoroscence_tag_linker'] = project['elements'][n]['linker_name']
+             locals()['fluoroscence_tag_linker_name'] = project['elements'][n]['linker_name']
+             locals()['fluoroscence_tag_linker'] = project['elements'][n]['linker']
         elif n == 'regulators':
             for r in  project['elements']['regulators'].keys():
                 locals()[str(r)] = project['elements']['regulators'][r]
         elif n == 'linkers' and len(project['elements'][n]) != 0:
             for r in  project['elements']['linkers'].keys():
-                locals()[str(r)] = project['linkers']['regulators'][r]
+                locals()[str(r)] = project['elements']['linkers'][r]
             
     
     
@@ -818,9 +819,12 @@ def eval_vector(project:dict(), vectors:pd.DataFrame(), vector_type:str(), **arg
     data_frame['element'] = new_element
     data_frame = data_frame.reset_index(drop=True)
     
+    
     for n in data_frame.index: 
-        if str(data_frame['element'][n]) in list(project['transcripts']['sequences']['ORF']):
-            data_frame['element'][n] = data_frame['element'][n] + ' : ' + str(project['transcripts']['sequences']['name'][project['transcripts']['sequences']['ORF'] == 'ORF1'][project['transcripts']['sequences']['name'][project['transcripts']['sequences']['ORF'] == 'ORF1'].index[0]])
+       if str(data_frame['element'][n]) + '_name' in locals():
+           data_frame['element'][n] = data_frame['element'][n] + ' : ' + eval(str(data_frame['element'][n]) + '_name')
+       elif str(data_frame['element'][n]) in list(project['transcripts']['sequences']['ORF']):
+            data_frame['element'][n] = data_frame['element'][n] + ' : ' + str(project['transcripts']['sequences']['name'][project['transcripts']['sequences']['ORF'] == str(data_frame['element'][n])][project['transcripts']['sequences']['name'][project['transcripts']['sequences']['ORF'] == str(data_frame['element'][n])].index[0]])
 
 
 
@@ -868,7 +872,9 @@ def vector_plot_project(project, title:str()):
     kw = dict(arrowprops=dict(arrowstyle="-"),
                zorder=0, va="center")
     
+    n = 0
     for i, p in enumerate(wedges):
+        n 
         ang = (p.theta2 - p.theta1)/2. + p.theta1
         y = np.sin(np.deg2rad(ang))
         x = np.cos(np.deg2rad(ang))
@@ -876,7 +882,8 @@ def vector_plot_project(project, title:str()):
         connectionstyle = "angle,angleA=0,angleB={}".format(ang)
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
         if len(labels[i]) > 0:
-            ax.annotate(labels[i], xy=(x, y), xytext=(1.9*x, 1.5*y),
+            n += 0.25
+            ax.annotate(labels[i], xy=(x, y), xytext=(1.4*x+(n*x/4), y*1.1+(n*y/4)),
                         horizontalalignment=horizontalalignment, fontsize=20, weight="bold", **kw)
     
     circle1 = plt.Circle( (0,0), 1, color='black')

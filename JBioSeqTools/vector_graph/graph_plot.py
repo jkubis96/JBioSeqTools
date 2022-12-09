@@ -31,7 +31,7 @@ def vector_plot(vector_df:pd.DataFrame(), title:str()):
     
     kw = dict(arrowprops=dict(arrowstyle="-"),
                zorder=0, va="center")
-    
+    n = 0
     for i, p in enumerate(wedges):
         ang = (p.theta2 - p.theta1)/2. + p.theta1
         y = np.sin(np.deg2rad(ang))
@@ -40,7 +40,8 @@ def vector_plot(vector_df:pd.DataFrame(), title:str()):
         connectionstyle = "angle,angleA=0,angleB={}".format(ang)
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
         if len(labels[i]) > 0:
-            ax.annotate(labels[i], xy=(x, y), xytext=(1.9*x, 1.5*y+(i/30)),
+            n += 0.25
+            ax.annotate(labels[i], xy=(x, y), xytext=(1.4*x+(n*x/4), y*1.1+(n*y/4)),
                         horizontalalignment=horizontalalignment, fontsize=20, weight="bold", **kw)
     
     circle1 = plt.Circle( (0,0), 1, color='black')

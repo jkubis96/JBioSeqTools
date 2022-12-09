@@ -1,97 +1,40 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from pandasgui import show
 
 
-def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/codons.xlsx?raw=true', vectors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/vectors.xlsx?raw=true', linkers:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/linkers.xlsx?raw=true', regulators:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/regulators.xlsx?raw=true', fluorescence_tag:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/fluorescence_tag.xlsx?raw=true', backbone:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/backbone.xlsx?raw=true', promotors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/promotors.xlsx?raw=true', restriction:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/restriction_enzymes.xlsx?raw=true'):
+
+def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/codons.xlsx?raw=true', restriction:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/restriction_enzymes.xlsx?raw=true'):
     codons = pd.read_excel(codons)
-    vectors = pd.read_excel(vectors)
-    linkers = pd.read_excel(linkers)
-    regulators = pd.read_excel(regulators)
-    fluorescence_tag = pd.read_excel(fluorescence_tag)
-    backbone = pd.read_excel(backbone)
-    promotors = pd.read_excel(promotors)
     restriction = pd.read_excel(restriction)
     
-    metadata = {'codons':codons, 'vectors':vectors, 'linkers':linkers, 'regulators':regulators, 'fluorescence_tag':fluorescence_tag, 'backbone':backbone, 'promotors':promotors, 'restriction':restriction}
+    metadata = {'codons':codons,'restriction':restriction}
 
     return metadata
 
 
-    
 
-def load_sequence(n:int(), project:dict(), **args):
-    transcripts = {'name': [], 'ORF': [], 'sequence': []}
-    for i in range(1,n+1):
-        check = True
-        check_name = True
-        while (check == True or check_name == True):
-            if str('ORF' + str(i)) not in args and check == True:
-                globals()[str('ORF' + str(i))] = input('Writte sequence ' + str('ORF'+str(i)) + ': ').replace('\\n', '\n')
-                globals()[str('ORF' + str(i))] = ''.join(c.upper() for c in eval(str('ORF' + str(i))) if c.isalpha())
-            if str('ORF' + str(i) + '_gen') not in args and check_name == True:
-                globals()[str('ORF' + str(i) + '_gen')] = input('Writte sequence name ' + str('ORF'+str(i)) + ': ')
-                globals()[str('ORF' + str(i) + '_gen')] = eval(str('ORF' + str(i) + '_gen')).upper()
-                
-            if str('ORF'+str(i)) in args:
-                test = args[str('ORF'+str(i))]
-                test = [args[str('ORF'+str(i))][y:y+3] for y in range(0, len(args[str('ORF'+str(i))]), 3)]
-                if ((len(test) == 0) or len(test[-1]) < 3):
-                    print("Wrong sequence " + str(i) + ". No three nucleotides repeat. Load right transcript")
-                    check = True
-                    
-                else:
-                    check = False
-                if (len(args[str('ORF' + str(i) + '_gen')]) == 0):
-                    print("Wrong name.  Writte sequence name")
-                    check_name = True
-                    
-                else:
-                    check_name = False
-                    
-                transcripts['name'].append(args[str('ORF' + str(i) + '_gen')].upper())
-                transcripts['ORF'].append(str('ORF' + str(i)))
-                transcripts['sequence'].append(''.join(c.upper() for c in args[str('ORF' + str(i))] if c.isalpha()))
-                
-                
-            else:
-                test = globals()[str('ORF'+str(i))]
-                test = [globals()[str('ORF'+str(i))][y:y+3] for y in range(0, len(globals()[str('ORF'+str(i))]), 3)]
-                
-                if ((len(test) == 0) or len(test[-1]) < 3):
-                    print("Wrong sequence " + str(i) + ". No three nucleotides repeat. Load right transcript")
-                    check = True
-                    
-                else:
-                    check = False
-                if (len(globals()[str('ORF' + str(i) + '_gen')]) == 0):
-                    print("Wrong name.  Writte sequence name")
-                    check_name = True
-                    
-                else:
-                    check_name = False
-                    
-                
-                transcripts['name'].append(globals()[str('ORF' + str(i) + '_gen')].upper())
-                transcripts['ORF'].append(str('ORF' + str(i)))
-                transcripts['sequence'].append(''.join(c.upper() for c in globals()[str('ORF' + str(i))] if c.isalpha()))
-                del globals()[str('ORF' + str(i) + '_gen')], globals()[str('ORF' + str(i))]
 
-     
-    transcripts = pd.DataFrame(transcripts)
-    transcript_list = []
-    for i in range(1,n+1):
-        transcript_list.append(str('ORF'+str(i)))
-        transcript_list.append(str('linker'+str(i)))
-    
-    transcript_list = transcript_list[0:len(transcript_list) - 1]
-    project['transcripts']['sequences'] = transcripts
-    project['elements']['transcripts'] = transcript_list
-    
-    return project  
-                
 
+def load_sequence(**args):
+    check = True
+    while (check == True):
+        sequence = input('\n Enter sequence: ').replace('\\n', '\n')
+        sequence = ''.join(c.upper() for c in sequence if c.isalpha())
+    
+    
+        test = sequence
+        test = [test[y:y+3] for y in range(0, len(test), 3)]
+        if ((len(test) == 0) or len(test[-1]) < 3):
+            print("\n Wrong sequence. The condition of three-nucleotide repeats in the coding sequence is not met.")
+            check = True
+            
+        else:
+            check = False
+        
+    
+    return sequence  
+                
 
 
 
@@ -197,65 +140,19 @@ def codon_otymization(sequence:str(), codons:pd.DataFrame, species:str()):
     
     df_final = pd.DataFrame(df_final)
     
+    print('-------------------------------------------------------------')
+    print('Before optimization:')
+    print('* GC % : ' + str(df_final['GC%'][0]))
+    print('* Mean codon frequence : ' + str(df_final['frequence'][0]))
+    print('**************************************************************')
+    print('After optimization:')
+    print('* GC % : ' + str(df_final['GC%'][1]))   
+    print('* Mean codon frequence : ' + str(df_final['frequence'][1]))
+
     return df_final
 
-
-
-def transcript_expression_enrichment(project:dict(), codons:pd.DataFrame(), species:str()):
-    project['transcripts']['sequences']['vector_sequence_GC'] = np.nan  
-    project['transcripts']['sequences']['vector_sequence_frequence'] = np.nan  
-    project['transcripts']['sequences']['optimized_vector_sequence'] = np.nan  
-    project['transcripts']['sequences']['optimized_vector_sequence_GC'] = np.nan  
-    project['transcripts']['sequences']['optimized_vector_sequence_frequence'] = np.nan  
-    project['transcripts']['sequences']['sequence_aa'] = np.nan 
-    for tn in range(0,len(project['transcripts']['sequences']['sequence'])):
-            tmp = codon_otymization(project['transcripts']['sequences']['vector_sequence'][tn], codons, species)
-            project['transcripts']['sequences']['vector_sequence_GC'][tn] = tmp['GC%'][0] 
-            project['transcripts']['sequences']['vector_sequence_frequence'][tn] = tmp['frequence'][0] 
-            project['transcripts']['sequences']['optimized_vector_sequence'] = tmp['sequence_na'][1] 
-            project['transcripts']['sequences']['optimized_vector_sequence_GC'][tn] = tmp['GC%'][1] 
-            project['transcripts']['sequences']['optimized_vector_sequence_frequence'][tn] = tmp['frequence'][1] 
-            project['transcripts']['sequences']['sequence_aa'] = tmp['sequence_aa'][1]
-            
-
-
-    return project
-
-
-
-def choose_transcript_variant(project:dict(), **args):
-    for i in  project['transcripts']['sequences'].index:
-        if str('ORF_sv' + str(i+1)) not in args:
-            print('-------------------------------------------------------------')
-            print('name : ' + str( project['transcripts']['sequences']['ORF'][i] + ' -> ' +  project['transcripts']['sequences']['name'][i]))
-            print('**************************************************************')
-            print('Before optimization:')
-            print('* GC % : ' + str( project['transcripts']['sequences']['vector_sequence_GC'][i]))
-            print('* Mean codon frequence : ' + str( project['transcripts']['sequences']['vector_sequence_frequence'][i]))
-            print('**************************************************************')
-            print('After optimization:')
-            print('* GC % : ' + str( project['transcripts']['sequences']['optimized_vector_sequence_GC'][i]))
-            print('* Mean codon frequence : ' + str( project['transcripts']['sequences']['optimized_vector_sequence_frequence'][i]))
-            print('Choose sequence: optimized [o] or not optimized [n]')
     
-            
-            check = True
-            while (check == True):
-                locals()[str('ORF_sv' + str(i+1))] = input('Writte your choose [o/n]: ')
-                if str('ORF_sv' + str(i+1)) in locals() and locals()[str('ORF_sv' + str(i+1))] == 'o' or str('ORF_sv' + str(i+1)) in locals() and locals()[str('ORF_sv' + str(i+1))] == 'n':
-                    check = False
-                    
-                
-        if str('ORF_sv' + str(i+1)) in locals() and locals()[str('ORF_sv' + str(i+1))] == 'o' :
-            project['transcripts']['sequences']['vector_sequence'][i] = project['transcripts']['sequences']['optimized_vector_sequence'][i]
-        if str('ORF_sv' + str(i+1)) in args and args[str('ORF_sv' + str(i+1))] == 'o' :
-            project['transcripts']['sequences']['vector_sequence'][i] = project['transcripts']['sequences']['optimized_vector_sequence'][i]
-
-        
     
-    return project       
-                
-
 
 
 
@@ -294,7 +191,7 @@ def check_restriction(sequence:str(), restriction:pd.DataFrame()):
         restriction_df = restriction_df.reset_index()
     
     if len(enzyme_restriction) == 0:
-        print('Any restriction places were found')
+        print('\n Any restriction places were not found')
     
     return enzyme_restriction, restriction_df
 
@@ -308,26 +205,28 @@ def choose_restriction_to_remove(restriction_df:pd.DataFrame(), enzyme_list:list
         for i in restriction_df.index:
             print('-------------------------------------------------------------')
             print('id : ' + str(i))
-            print('name : ' + restriction_df[0][i])
+            print('name : ' + restriction_df['name'][i])
 
     
         enzyme_list = []
         check = True
         enzyme_n = 1
         while (check == True):
-            print('Provide enzyme id, if no restriction sites are relevant to your experiment or you have already provided all enzyme ids, write "x"')
-            enzyme = input('Write enzyme '+ str(enzyme_n) + ' id: ')
+            print('\n Provide enzyme id, if no restriction sites are relevant to your experiment or you have already provided all enzyme ids, write "x"')
+            enzyme = input('\n Write enzyme '+ str(enzyme_n) + ' id: ')
             if len(enzyme) != 0 and not enzyme.isalpha() and int(enzyme) in restriction_df.index:
                 enzyme_n += 1
-                enzyme_list = enzyme_list + restriction_df[1][int(enzyme)]
+                enzyme_list = enzyme_list + restriction_df['index'][int(enzyme)]
             elif len(enzyme) != 0 and enzyme.upper() == 'X':
                 check = False
         
         enzyme_list = np.unique(enzyme_list)
     else:
-        print('Any restriction places to choose')
+        print('\n Lack of restriction places to choose')
         
     return np.asarray(enzyme_list)       
+
+
 
 
 
@@ -468,7 +367,31 @@ def repair_sequences(sequence:str(), codons:pd.DataFrame, restriction_df:pd.Data
         enzyme_restriction = pd.DataFrame.from_dict(enzyme_restriction)
         not_repaired = []
         final_sequence = sequence
+        
+    seq_tmp_GC = (sequence.count('C') + sequence.count('G')) / len(sequence) * 100
+    seq_tmp_GC_2 = (final_sequence.count('C') + final_sequence.count('G')) / len(final_sequence) * 100
 
-    return final_sequence, not_repaired, enzyme_restriction, restriction_df
+    seq1 = [sequence[y:y+3] for y in range(0, len(sequence), 3)]
+    seq_codon_fr = [codons['Fraction'][codons['Triplet'] == seq][codons['Fraction'][codons['Triplet'] == seq].index[0]] for seq in seq1]
+    seq_codon_fr = round(sum(seq_codon_fr) / len(seq_codon_fr),2)
+    
+    seq2 = [final_sequence[y:y+3] for y in range(0, len(final_sequence), 3)]
+    seq_codon_fr2 = [codons['Fraction'][codons['Triplet'] == seq][codons['Fraction'][codons['Triplet'] == seq].index[0]] for seq in seq2]
+    seq_codon_fr2 = round(sum(seq_codon_fr2) / len(seq_codon_fr2),2)
+    
+    df_final = {'status':[], 'sequence_na':[], 'frequence':[], 'GC%': []}
+    df_final['status'].append('before_restriction_optimization')
+    df_final['status'].append('after_restriction_optimization')
+    df_final['sequence_na'].append(sequence)
+    df_final['sequence_na'].append(final_sequence)
+    df_final['frequence'].append(seq_codon_fr)
+    df_final['frequence'].append(seq_codon_fr2)
+    df_final['GC%'].append(seq_tmp_GC)
+    df_final['GC%'].append(seq_tmp_GC_2)
+    
+    df_final = pd.DataFrame(df_final) 
+
+    return df_final, not_repaired, enzyme_restriction, restriction_df
+
 
 
