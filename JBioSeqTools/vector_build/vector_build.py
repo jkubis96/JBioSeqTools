@@ -4,23 +4,23 @@ from tqdm import tqdm
 
 
 
-def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/codons.xlsx?raw=true', vectors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/vectors.xlsx?raw=true', linkers:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/linkers.xlsx?raw=true', regulators:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/regulators.xlsx?raw=true', fluorescence_tag:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/fluorescence_tag.xlsx?raw=true', backbone:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/backbone.xlsx?raw=true', promotors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/promotors.xlsx?raw=true', restriction:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/restriction_enzymes.xlsx?raw=true'):
+def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/codons.xlsx?raw=true', vectors:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/vectors.xlsx?raw=true', linkers:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/linkers.xlsx?raw=true', regulators:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/regulators.xlsx?raw=true', fluorescent_tag:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/fluorescent_tag.xlsx?raw=true', backbone:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/backbone.xlsx?raw=true', promoters:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/promoters.xlsx?raw=true', restriction:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/main/data/restriction_enzymes.xlsx?raw=true'):
     codons = pd.read_excel(codons)
     vectors = pd.read_excel(vectors)
     linkers = pd.read_excel(linkers)
     regulators = pd.read_excel(regulators)
-    fluorescence_tag = pd.read_excel(fluorescence_tag)
+    fluorescent_tag = pd.read_excel(fluorescent_tag)
     backbone = pd.read_excel(backbone)
-    promotors = pd.read_excel(promotors)
+    promoters = pd.read_excel(promoters)
     restriction = pd.read_excel(restriction)
     
-    metadata = {'codons':codons, 'vectors':vectors, 'linkers':linkers, 'regulators':regulators, 'fluorescence_tag':fluorescence_tag, 'backbone':backbone, 'promotors':promotors, 'restriction':restriction}
+    metadata = {'codons':codons, 'vectors':vectors, 'linkers':linkers, 'regulators':regulators, 'fluorescent_tag':fluorescent_tag, 'backbone':backbone, 'promoters':promoters, 'restriction':restriction}
 
     print('\n Metadata has loaded successfully')
     return metadata
 
 def create_project(project_name:str()):
-    project = {'project':str(project_name),'transcripts':{}, 'elements':{'promotor':{}, 'fluorescence':{}, 'linkers':{}, 'regulators': {}}, 'vector':{'eval':{}, 'elements':{}, 'fasta':{}, 'graph':{}}}
+    project = {'project':str(project_name),'transcripts':{}, 'elements':{'promoter':{}, 'fluorescence':{}, 'linkers':{}, 'regulators': {}}, 'vector':{'eval':{}, 'elements':{}, 'fasta':{}, 'graph':{}}}
     return project
     
 
@@ -96,54 +96,54 @@ def load_transcripts(n:int(), project:dict(), **args):
                 
 
 
-def choose_promotor(promotors:pd.DataFrame(), project:dict(), **args):
-    if 'promotor' not in args and 'promotor_name' not in args:
-        for lin in promotors['id']:
+def choose_promoter(promoters:pd.DataFrame(), project:dict(), **args):
+    if 'promoter' not in args and 'promoter_name' not in args:
+        for lin in promoters['id']:
             print('-------------------------------------------------------------')
             print('id : ' + str(lin))
-            print('name : ' + str(promotors['name'][promotors['id'] == lin][lin-1]))
-            print('specificity : ' + str(promotors['tissue'][promotors['id'] == lin][lin-1]))
-            print('description : ' + str(promotors['description'][promotors['id'] == lin][lin-1]))
-            print('role : ' + str(promotors['role'][promotors['id'] == lin][lin-1]))
-            print('reference : ' + str(promotors['ref'][promotors['id'] == lin][lin-1]))
+            print('name : ' + str(promoters['name'][promoters['id'] == lin][lin-1]))
+            print('specificity : ' + str(promoters['tissue'][promoters['id'] == lin][lin-1]))
+            print('description : ' + str(promoters['description'][promoters['id'] == lin][lin-1]))
+            print('role : ' + str(promoters['role'][promoters['id'] == lin][lin-1]))
+            print('reference : ' + str(promoters['ref'][promoters['id'] == lin][lin-1]))
        
         check = True
         while (check == True):
-            x = input('\n Enter id for promotor: ')
-            if (locals()['x'] != '' and int(locals()['x']) > 0 and len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(promotors['role'])+1)):
+            x = input('\n Enter id for promoter: ')
+            if (locals()['x'] != '' and int(locals()['x']) > 0 and len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(promoters['role'])+1)):
                 if x == str(0):
-                    project['elements']['promotor']['sequence'] = ''
-                    project['elements']['promotor']['name'] = ''
+                    project['elements']['promoter']['sequence'] = ''
+                    project['elements']['promoter']['name'] = ''
                 else:
-                    project['elements']['promotor']['sequence'] = str(promotors['seq'][promotors['id'] == eval(x)][eval(x)-1])
-                    project['elements']['promotor']['name'] = str(promotors['name'][promotors['id'] == eval(x)][eval(x)-1])
+                    project['elements']['promoter']['sequence'] = str(promoters['seq'][promoters['id'] == eval(x)][eval(x)-1])
+                    project['elements']['promoter']['name'] = str(promoters['name'][promoters['id'] == eval(x)][eval(x)-1])
 
                 check = False
     else:
-        project['elements']['promotor']['sequence'] = args['promotor']
-        project['elements']['promotor']['name'] = args['promotor_name']
+        project['elements']['promoter']['sequence'] = args['promoter']
+        project['elements']['promoter']['name'] = args['promoter_name']
         
     return project
 
-def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(), project:dict(), **args):
-    if 'fluorescence' not in args and 'fluorescence_name' not in args and 'fluoroscence_tag_linker' not in args and 'fluoroscence_tag_linker_name' not in args:
+def choose_fluorescence(fluorescent_tag:pd.DataFrame(), linkers:pd.DataFrame(), project:dict(), **args):
+    if 'fluorescence' not in args and 'fluorescence_name' not in args and 'fluorescent_tag_linker' not in args and 'fluorescent_tag_linker_name' not in args:
         check_f = True
         check_l = True
         while(check_f == True and check_l == True):
             if 'fluorescence' not in args and 'fluorescence_name' not in args and check_f == True:
                 print('-------------------------------------------------------------')
                 print('id : 0')
-                print('Lack of fluorescence tag')
-                for lin in fluorescence_tag['id']:
+                print('Lack of fluorescent tag')
+                for lin in fluorescent_tag['id']:
                     print('-------------------------------------------------------------')
                     print('id : ' + str(lin))
-                    print('name : ' + str(fluorescence_tag['name'][linkers['id'] == lin][lin-1]))
-                    print('description : ' + str(fluorescence_tag['description'][fluorescence_tag['id'] == lin][lin-1]))
-                    print('role : ' + str(fluorescence_tag['role'][fluorescence_tag['id'] == lin][lin-1]))
-                    print('reference : ' + str(fluorescence_tag['ref'][fluorescence_tag['id'] == lin][lin-1]))
+                    print('name : ' + str(fluorescent_tag['name'][linkers['id'] == lin][lin-1]))
+                    print('description : ' + str(fluorescent_tag['description'][fluorescent_tag['id'] == lin][lin-1]))
+                    print('role : ' + str(fluorescent_tag['role'][fluorescent_tag['id'] == lin][lin-1]))
+                    print('reference : ' + str(fluorescent_tag['ref'][fluorescent_tag['id'] == lin][lin-1]))
         
                 locals()['x'] = input('\n Enter id for fluorescence tag: ')
-                if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(fluorescence_tag['role'])+1) ):
+                if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(fluorescent_tag['role'])+1) ):
                     check_f = False
                     if locals()['x'] == str(0):
                         project['elements']['fluorescence']['sequence'] = ''
@@ -153,18 +153,18 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
                         check_l = False
     
                     else:
-                        project['elements']['fluorescence']['sequence'] = str(fluorescence_tag['seq'][fluorescence_tag['id'] == int(locals()['x'])][int(locals()['x'])-1])
-                        project['elements']['fluorescence']['name'] = str(fluorescence_tag['name'][fluorescence_tag['id'] == int(locals()['x'])][int(locals()['x'])-1])
+                        project['elements']['fluorescence']['sequence'] = str(fluorescent_tag['seq'][fluorescent_tag['id'] == int(locals()['x'])][int(locals()['x'])-1])
+                        project['elements']['fluorescence']['name'] = str(fluorescent_tag['name'][fluorescent_tag['id'] == int(locals()['x'])][int(locals()['x'])-1])
     
             if 'fluorescence' in args:
                 check_f = False
                 
                
                     
-            if 'fluoroscence_tag_linker' not in args and 'fluoroscence_tag_linker_name' not in args and check_l == True and check_f == False:
+            if 'fluorescent_tag_linker' not in args and 'fluorescent_tag_linker_name' not in args and check_l == True and check_f == False:
                 print('-------------------------------------------------------------')
                 print('id : 0')
-                print('Lack of the linker between the last protein and the fluorescence tag')
+                print('Lack of the linker between the last protein and the fluorescent tag')
                 for lin in linkers['id']:
                     print('-------------------------------------------------------------')
                     print('id : ' + str(lin))
@@ -173,7 +173,7 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
                     print('role : ' + str(linkers['role'][linkers['id'] == lin][lin-1]))
                     
                 
-                locals()['l'] = input('Enter id for linker: ')
+                locals()['l'] = input('\n Enter id for linker: ')
                 
                 if (len(locals()['l']) > 0) and locals()['l'].isnumeric() and (int(locals()['l']) in range(0, len(linkers['role'])+1)):
                     check_l = False
@@ -186,14 +186,14 @@ def choose_fluorescence(fluorescence_tag:pd.DataFrame(), linkers:pd.DataFrame(),
                         project['elements']['fluorescence']['linker_name'] = str(linkers['name'][linkers['id'] == int(locals()['l'])][int(locals()['l'])-1])
     
     
-            if 'fluoroscence_tag_linker' in args:
+            if 'fluorescent_tag_linker' in args:
                 check_f = False
      
     else:
         project['elements']['fluorescence']['sequence'] = args['fluorescence']
         project['elements']['fluorescence']['name'] = args['fluorescence_name']
-        project['elements']['fluorescence']['linker'] = args['fluoroscence_tag_linker']
-        project['elements']['fluorescence']['linker_name'] = args['fluoroscence_tag_linker_name']
+        project['elements']['fluorescence']['linker'] = args['fluorescent_tag_linker']
+        project['elements']['fluorescence']['linker_name'] = args['fluorescent_tag_linker_name']
         
     return project
 
@@ -768,14 +768,14 @@ def eval_vector(project:dict(), vectors:pd.DataFrame(), vector_type:str(), **arg
 
     
     for element, n in enumerate(project['elements']):
-        if n == 'promotor':
-            locals()['promotor'] = project['elements'][n]['sequence']
-            locals()['promotor_name'] = project['elements'][n]['name']
+        if n == 'promoter':
+            locals()['promoter'] = project['elements'][n]['sequence']
+            locals()['promoter_name'] = project['elements'][n]['name']
         elif n == 'fluorescence':
              locals()['fluorescence'] = project['elements'][n]['sequence']
              locals()['fluorescence_name'] = project['elements'][n]['name']
-             locals()['fluoroscence_tag_linker_name'] = project['elements'][n]['linker_name']
-             locals()['fluoroscence_tag_linker'] = project['elements'][n]['linker']
+             locals()['fluorescent_tag_linker_name'] = project['elements'][n]['linker_name']
+             locals()['fluorescent_tag_linker'] = project['elements'][n]['linker']
         elif n == 'regulators':
             for r in  project['elements']['regulators'].keys():
                 locals()[str(r)] = project['elements']['regulators'][r]
