@@ -24,7 +24,7 @@ def create_project(project_name:str()):
     return project
     
 
-def load_transcripts(n:int(), project:dict(), **args):
+def load_sequences(n:int(), project:dict(), coding = True, upac_code:list() = ['A','C','T','G','N','M','R','W','S','Y','K','V','H','D','B'], **args):
     transcripts = {'name': [], 'ORF': [], 'sequence': []}
     for i in range(1,n+1):
         check = True
@@ -33,53 +33,88 @@ def load_transcripts(n:int(), project:dict(), **args):
             if str('ORF' + str(i)) not in args and check == True:
                 globals()[str('ORF' + str(i))] = input('Enter sequence ' + str('ORF'+str(i)) + ': ').replace('\\n', '\n')
                 globals()[str('ORF' + str(i))] = ''.join(c.upper() for c in eval(str('ORF' + str(i))) if c.isalpha())
-            if str('ORF' + str(i) + '_gen') not in args and check_name == True:
-                globals()[str('ORF' + str(i) + '_gen')] = input('Enter sequence name ' + str('ORF'+str(i)) + ': ')
-                globals()[str('ORF' + str(i) + '_gen')] = eval(str('ORF' + str(i) + '_gen')).upper()
+            if str('ORF' + str(i) + '_name') not in args and check_name == True:
+                globals()[str('ORF' + str(i) + '_name')] = input('Enter sequence name ' + str('ORF'+str(i)) + ': ')
+                globals()[str('ORF' + str(i) + '_name')] = eval(str('ORF' + str(i) + '_name')).upper()
                 
             if str('ORF'+str(i)) in args:
                 test = args[str('ORF'+str(i))]
                 test = [args[str('ORF'+str(i))][y:y+3] for y in range(0, len(args[str('ORF'+str(i))]), 3)]
-                if ((len(test) == 0) or len(test[-1]) < 3):
+                test2 = args[str('ORF'+str(i))].upper()
+                test2 = list(test2)
+                
+                t2 = True
+                for h in test2:
+                    if h not in upac_code:
+                        t2 = False
+                        break
+                
+                
+                if (len(test) == 0):
+                    print("\n Sequence not provided. Sequence length equals 0")
+                    check = True  
+                elif (len(test[-1]) < 3 and coding == True):
                     print("\n Wrong sequence " + str(i) + ". The condition of three-nucleotide repeats in the coding sequence is not met.")
+                    check = True
+                elif (t2 == False):
+                    print("\n Wrong sequence " + str(i) + ". The sequence contains letters not included in UPAC code. UPAC: ")
+                    print(upac_code)
                     check = True
                     
                 else:
                     check = False
-                if (len(args[str('ORF' + str(i) + '_gen')]) == 0):
+                if (len(args[str('ORF' + str(i) + '_name')]) == 0):
                     print("\n Wrong name.  Enter sequence name")
                     check_name = True
                     
                 else:
                     check_name = False
                     
-                transcripts['name'].append(args[str('ORF' + str(i) + '_gen')].upper())
-                transcripts['ORF'].append(str('ORF' + str(i)))
-                transcripts['sequence'].append(''.join(c.upper() for c in args[str('ORF' + str(i))] if c.isalpha()))
+                if check_name == False and check == False:
+                    transcripts['name'].append(globals()[str('ORF' + str(i) + '_name')].upper())
+                    transcripts['ORF'].append(str('ORF' + str(i)))
+                    transcripts['sequence'].append(''.join(c.upper() for c in globals()[str('ORF' + str(i))] if c.isalpha()))
                 
                 
             else:
                 test = globals()[str('ORF'+str(i))]
                 test = [globals()[str('ORF'+str(i))][y:y+3] for y in range(0, len(globals()[str('ORF'+str(i))]), 3)]
+                test2 = globals()[str('ORF'+str(i))].upper()
+                test2 = list(test2)
                 
-                if ((len(test) == 0) or len(test[-1]) < 3):
+                t2 = True
+                for h in test2:
+                    if h not in upac_code:
+                        t2 = False
+                        break
+                
+                
+                if (len(test) == 0):
+                    print("\n Sequence not provided. Sequence length equals 0")
+                    check = True  
+                elif (len(test[-1]) < 3 and coding == True):
                     print("\n Wrong sequence " + str(i) + ". The condition of three-nucleotide repeats in the coding sequence is not met.")
                     check = True
+                elif (t2 == False):
+                    print("\n Wrong sequence " + str(i) + ". The sequence contains letters not included in UPAC code. UPAC: ")
+                    print(upac_code)
+                    check = True
+                    
                     
                 else:
                     check = False
-                if (len(globals()[str('ORF' + str(i) + '_gen')]) == 0):
+                if (len(globals()[str('ORF' + str(i) + '_name')]) == 0):
                     print("\n Wrong name.  Enter sequence name")
                     check_name = True
                     
                 else:
                     check_name = False
                     
-                
-                transcripts['name'].append(globals()[str('ORF' + str(i) + '_gen')].upper())
-                transcripts['ORF'].append(str('ORF' + str(i)))
-                transcripts['sequence'].append(''.join(c.upper() for c in globals()[str('ORF' + str(i))] if c.isalpha()))
-                del globals()[str('ORF' + str(i) + '_gen')], globals()[str('ORF' + str(i))]
+                if check_name == False and check == False:
+                    transcripts['name'].append(globals()[str('ORF' + str(i) + '_name')].upper())
+                    transcripts['ORF'].append(str('ORF' + str(i)))
+                    transcripts['sequence'].append(''.join(c.upper() for c in globals()[str('ORF' + str(i))] if c.isalpha()))
+                    del globals()[str('ORF' + str(i) + '_name')], globals()[str('ORF' + str(i))]
 
      
     transcripts = pd.DataFrame(transcripts)
@@ -198,7 +233,7 @@ def choose_fluorescence(fluorescent_tag:pd.DataFrame(), linkers:pd.DataFrame(), 
     return project
 
 
-def choose_linkers(n:int(), linkers:pd.DataFrame(), project:dict(), **args):
+def choose_linker(n:int(), linkers:pd.DataFrame(), project:dict(), **args):
     if n < 1:
         project['elements']['linkers']['linker1'] = ''
         project['elements']['linkers']['linker1_name'] = ''
@@ -241,7 +276,7 @@ def choose_linkers(n:int(), linkers:pd.DataFrame(), project:dict(), **args):
     return project
 
 
-def choose_enhancer(regulators:pd.DataFrame(), project:dict(), **args):
+def choose_regulator(regulators:pd.DataFrame(), project:dict(), **args):
     if 'enhancer' not in args and 'enhancer_name' not in args:
         print('-------------------------------------------------------------')
         print('id : 0')

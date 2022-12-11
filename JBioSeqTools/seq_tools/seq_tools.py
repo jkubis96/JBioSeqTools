@@ -16,7 +16,7 @@ def load_metadata(codons:str() = 'https://github.com/jkubis96/JBioSeqTools/blob/
 
 
 
-def load_sequence(**args):
+def load_sequence(coding = True, upac_code:list() = ['A','C','T','G','N','M','R','W','S','Y','K','V','H','D','B'], **args):
     check = True
     while (check == True):
         sequence = input('\n Enter sequence: ').replace('\\n', '\n')
@@ -24,9 +24,25 @@ def load_sequence(**args):
     
     
         test = sequence
+        test2 = list(test)
         test = [test[y:y+3] for y in range(0, len(test), 3)]
-        if ((len(test) == 0) or len(test[-1]) < 3):
+        
+        t2 = True
+        for h in test2:
+            if h not in upac_code:
+                t2 = False
+                break
+        
+        
+        if (len(test) == 0):
+            print("\n Sequence not provided. Sequence length equals 0")
+            check = True  
+        elif (len(test[-1]) < 3 and coding == True):
             print("\n Wrong sequence. The condition of three-nucleotide repeats in the coding sequence is not met.")
+            check = True
+        elif (t2 == False):
+            print("\n Wrong sequence. The sequence contains letters not included in UPAC code. UPAC: ")
+            print(upac_code)
             check = True
             
         else:
@@ -231,7 +247,7 @@ def choose_restriction_to_remove(restriction_df:pd.DataFrame(), enzyme_list:list
 
 
 
-def repair_sequences(sequence:str(), codons:pd.DataFrame, restriction_df:pd.DataFrame(), restriction:pd.DataFrame(), enzyme_list:list(), species:str()):
+def repair_sequence(sequence:str(), codons:pd.DataFrame, restriction_df:pd.DataFrame(), restriction:pd.DataFrame(), enzyme_list:list(), species:str()):
     if len(restriction_df) != 0:
         not_repaired = []
         codons = codons[codons['Species'] == species]
