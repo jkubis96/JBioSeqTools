@@ -447,7 +447,7 @@ def codon_otymization(sequence:str(), codons:pd.DataFrame, species:str()):
 
 
 
-def transcript_expression_enrichment(project:dict(), codons:pd.DataFrame(), species:str()):
+def sequence_enrichment(project:dict(), codons:pd.DataFrame(), species:str()):
     project['transcripts']['sequences']['vector_sequence_GC'] = np.nan  
     project['transcripts']['sequences']['vector_sequence_frequence'] = np.nan  
     project['transcripts']['sequences']['optimized_vector_sequence'] = np.nan  
@@ -469,7 +469,7 @@ def transcript_expression_enrichment(project:dict(), codons:pd.DataFrame(), spec
 
 
 
-def choose_transcript_variant(project:dict(), **args):
+def choose_sequence_variant(project:dict(), **args):
     for i in  project['transcripts']['sequences'].index:
         if str('ORF_sv' + str(i+1)) not in args:
             print('-------------------------------------------------------------')
