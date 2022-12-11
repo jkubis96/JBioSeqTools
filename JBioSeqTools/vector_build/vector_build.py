@@ -659,12 +659,12 @@ def repair_sequences(sequence:str(), codons:pd.DataFrame, restriction_df:pd.Data
         if len(not_repaired) == 0:    
             print('\n Restriction place in sequence repaired...')
         else:
-            print('\n Restriction place for:')
+            print('\n Restriction places for:')
             for i in not_repaired:
                 print('\n'+ str(i))
                 
             print('\n were unable to optimize:')
-            print('\n Rest of chosen restriction place in sequence repaired...')
+            print('\n Rest of chosen restriction places in sequence repaired...')
     
     
         enzyme_restriction = {'name':[], 'restriction_place':[], 'restriction_sequence':[], 'sequence':[], 'start':[], 'stop':[]}
