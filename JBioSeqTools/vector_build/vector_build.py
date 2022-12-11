@@ -177,7 +177,7 @@ def choose_fluorescence(fluorescent_tag:pd.DataFrame(), linkers:pd.DataFrame(), 
                     print('role : ' + str(fluorescent_tag['role'][fluorescent_tag['id'] == lin][lin-1]))
                     print('reference : ' + str(fluorescent_tag['ref'][fluorescent_tag['id'] == lin][lin-1]))
         
-                locals()['x'] = input('\n Enter id for fluorescence tag: ')
+                locals()['x'] = input('\n Enter id for fluorescent tag: ')
                 if (len(locals()['x']) > 0) and locals()['x'].isnumeric() and (int(locals()['x']) in range(0, len(fluorescent_tag['role'])+1) ):
                     check_f = False
                     if locals()['x'] == str(0):
@@ -829,7 +829,7 @@ def eval_vector(project:dict(), vectors:pd.DataFrame(), vector_type:str(), **arg
             print('\n')
             print('Variable -> ' + str(el) + ' <- was not found. Provide all required variables!!!')
             print('\n')
-            return False, False
+            
         else:
             data_frame['element'].append(str(el))
             data_frame['sequence'].append(eval(el))
