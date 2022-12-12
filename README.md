@@ -57,7 +57,7 @@ metadata = sq.load_metadata()
 #### 3. Enter sequence
 
 ```
-sequence = sq.load_sequence()
+sequence = sq.load_sequence(coding = True)
 ```
 
 
@@ -134,18 +134,21 @@ from JBioSeqTools import graph_plot as gp
 
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JBioSeqTools/blob/main/fig/final_vector_df.bmp?raw=true" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/final_vector_df.bmp" alt="drawing" width="600" />
 </p>
 
-** Required dataframe \n** 
-** - data must be provided in form data frame like above\n **
-** - provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector \n **
+** Required dataframe [vector_df] \
+** - data must be provided in form data frame like above \ 
+** - provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector \ 
 
 
 ```
-pl = gp.vector_plot()
+title = 'Vector_name'
+
+pl = gp.vector_plot(vector_df, title)
 ```
 
+* title - name of the vector
 
 
 <p align="center">
@@ -182,10 +185,11 @@ project = vb.create_project(project_name)
 #### 4. Choose a number of sequences in vector and enter them
 
 ```
-project = vb.load_transcripts(n, project)
+project = vb.load_sequences(n, project, coding = True)
 ```
 
 * n - number of transcript sequences in the vector
+* coding - check trinucleotide repeats content for coding sequence [True/False]
 
 
 
@@ -202,7 +206,7 @@ project = vb.choose_promoter(metadata['promoters'], project)
 ```
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/promotor.bmp" alt="drawing" width="600" />
 </p>
 
 
@@ -213,14 +217,14 @@ project = vb.choose_fluorescence(metadata['fluorescent_tag'], metadata['linkers'
 ```
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/fluorescence.bmp" alt="drawing" width="600" />
 </p>
 
 
 #### 7. Choose linkers between entered transcript sequences
 
 ```
-project = vb.choose_linkers(n, metadata['linkers'], project)
+project = vb.choose_linker(n, metadata['linkers'], project)
 ```
 
 * n - number of transcript sequences in the vector
@@ -228,14 +232,14 @@ project = vb.choose_linkers(n, metadata['linkers'], project)
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/linker.bmp" alt="drawing" width="600" />
 </p>
 
 
 #### 8. Choose regulatory element for vector sequence
 
 ```
-project = vb.choose_enhancer(metadata['regulators'], project)
+project = vb.choose_regulator(metadata['regulators'], project)
 ```
 
 * n - number of transcript sequences in the vector
@@ -243,7 +247,7 @@ project = vb.choose_enhancer(metadata['regulators'], project)
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/regulator.bmp" alt="drawing" width="600" />
 </p>
 
 
@@ -254,34 +258,26 @@ project = vb.check_stop(project, metadata['codons'])
 ```
 
 
-<p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
-</p>
-
 
 #### 10. Optimization of codon frequency and GC content for transcripts
 
 ```
 species = 'human'
 
-project = vb.transcript_expression_enrichment(project, metadata['codons'], species)
+project = vb.sequence_enrichment(project, metadata['codons'], species)
 ```
 
-
-<p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
-</p>
-
+* species - species-specific codon frequency (must be provided) ['human'/'mouse'] 
 
 #### 11. Choose version of transcript: before or after optimization
 
 ```
-project = vb.choose_transcript_variant(project)
+project = vb.choose_sequence_variant(project)
 ```
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/optymalization.bmp" alt="drawing" width="600" />
 </p>
 
 
@@ -292,10 +288,6 @@ project = vb.find_restriction_vector(project, metadata['restriction'])
 ```
 
 
-<p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
-</p>
-
 
 #### 13. Choose restriction enzymes place to repair in the transcripts
 
@@ -305,20 +297,17 @@ project = vb.choose_restriction_vector(project, metadata['restriction'])
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction.bmp" alt="drawing" width="600" />
 </p>
 
 
 #### 14. Repair chosen restriction places
 
 ```
+species = 'human'
+
 project = vb.repair_restriction_vector(project, metadata['restriction'], metadata['codons'], species)
 ```
-
-
-<p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
-</p>
 
 
 #### 15. Prepare vector to eval sequence 
@@ -326,11 +315,6 @@ project = vb.repair_restriction_vector(project, metadata['restriction'], metadat
 ```
 project = vb.vector_string(project, metadata['backbone'], vector_type)
 ```
-
-
-<p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
-</p>
 
 
 #### 16. Create vector sequence and data frame
@@ -341,7 +325,7 @@ project = vb.eval_vector(project, metadata['vectors'], vector_type)
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/final_vector_df.bmp" alt="drawing" width="600" />
 </p>
 
 
@@ -349,11 +333,12 @@ project = vb.eval_vector(project, metadata['vectors'], vector_type)
 #### 17. Create a graph of vector 
 
 ```
+title = 'Vector_name'
 
 project, pl = vb.vector_plot_project(project, title)
 ```
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/restriction_optimization.bmp" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JBioSeqTools/blob/main/fig/vector_plot.png?raw=true" alt="drawing" width="600" />
 </p>
