@@ -150,6 +150,7 @@ from JBioSeqTools import graph_plot as gp
 	- data must be provided in form data frame like above <br />
 	- provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector 
 
+<br />
 
 ```
 title = 'Vector_name'
@@ -159,6 +160,7 @@ pl = gp.vector_plot(vector_df, title)
 
 * title - name of the vector
 
+<br />
 
 <p align="center">
 <img  src="https://github.com/jkubis96/JBioSeqTools/blob/main/fig/vector_plot.png?raw=true" alt="drawing" width="600" />
