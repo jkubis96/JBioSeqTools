@@ -146,8 +146,8 @@ from JBioSeqTools import graph_plot as gp
 <img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/main/fig/final_vector_df.bmp" alt="drawing" width="600" />
 </p>
 
-** Required dataframe [vector_df]:
-	- data must be provided in form data frame like above 
+** Required dataframe [vector_df]: <br />
+	- data must be provided in form data frame like above <br />
 	- provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector 
 
 
