@@ -138,8 +138,8 @@ from JBioSeqTools import graph_plot as gp
 </p>
 
 ** Required dataframe [vector_df] \
-** - data must be provided in form data frame like above \ 
-** - provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector \ 
+- data must be provided in form data frame like above \ 
+- provided in column 'elements' cells with 'backbone_element' name will not signed in graph of vector \ 
 
 
 ```
