@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+pd.options.mode.chained_assignment = None
 
 def vector_plot(vector_df:pd.DataFrame(), title:str()):
     vector_df = vector_df.sort_index(ascending=False)

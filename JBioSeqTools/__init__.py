@@ -1,5 +1,5 @@
 print()
-print('Welcome in JBioSeqTools v.1.1.2 library')
+print('Welcome in JBioSeqTools v.1.1.3 library')
 print('')
 print('Loading required  packages...')
 
