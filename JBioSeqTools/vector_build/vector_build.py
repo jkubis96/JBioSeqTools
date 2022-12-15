@@ -706,7 +706,7 @@ def repair_sequences(sequence:str(), codons:pd.DataFrame, restriction_df:pd.Data
             print('\n Any new restriction places were not created')
         else:
             print('\n New restriction places were created:')
-            for name in enzyme_restriction['name']:
+            for name in np.unique(enzyme_restriction['name']):
                 print(name)
     
     else:
