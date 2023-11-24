@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.1.3' 
+VERSION = '1.9.0' 
 DESCRIPTION = 'JBioSeqTools'
-LONG_DESCRIPTION = 'JBioSeqTools is the python library for biological sequence optimization (GC % content & codon frequency) for better expression of different species cells in vivo. It also allows building AAV vectors with the possibility of choosing sequences between ITRs such as transcript, promoter, enhancer, and molecular fluorescent tag. Finally, the user obtains ready for order construct with a whole sequence and visualization. Package description  on https://github.com/jkubis96/JBioSeqTools'
+LONG_DESCRIPTION = 'JBioSeqTools is the Python library for biological sequence optimization (GC % content & codon frequency), restriction places removal, DNA/RNA structure prediction, and RNAi selection. It also allows the building of many plasmid vectors with the possibility of choosing sequences such as transcript, promoter, enhancer, molecular fluorescent tag, etc. Finally, the user obtains a ready-for-order construct with a whole sequence and visualization. Package description  on https://github.com/jkubis96/JBioSeqTools'
 
 # Setting up
 setup(
@@ -13,8 +13,9 @@ setup(
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         packages=find_packages(),
-        install_requires=['pandas', 'tqdm', 'matplotlib', 'numpy', 'requests'],       
-        keywords=['sequence', 'optimization', 'vectors', 'AAV', 'GC', 'restriction enzimes'],
+        include_package_data=True,
+        install_requires=['pandas', 'tqdm', 'matplotlib', 'numpy', 'requests', 'openpyxl', 'pymsaviz', 'ViennaRNA', 'biopython', 'networkx', 'seaborn'],       
+        keywords=['sequence', 'optimization', 'vectors', 'AAV', 'GC', 'restriction enzyme'],
         license = 'MIT',
         classifiers = [
             "Development Status :: 3 - Alpha",
