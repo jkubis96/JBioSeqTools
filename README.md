@@ -375,10 +375,10 @@ Columns explanation:
 * RNAi_sense - sense strand of RNAi (reverse-complement to the RNAi_seq)
 * repeated_motif - sequences with repeated sequences of the same nucleotide inside RNAi
 * repeated_motif_pct - percent of nucleotides from sequences with repeated sequences of the same nucleotide inside RNAi
-* score - algorithmically given points to particular RNAi sequences based on knowledge from previous works and papers:
-	-DOI:10.1093/nar/gkn902
-	-DOI:10.1093/nar/gkh247
-	-DOI:10.1038/nbt936
+* score - algorithmically given points to particular RNAi sequences based on knowledge from previous works and papers: \
+	-DOI:10.1093/nar/gkn902 \
+	-DOI:10.1093/nar/gkh247 \
+	-DOI:10.1038/nbt936 \
 	-DOI:10.1016/j.bbrc.2004.02.157
 	
 * GC% - percent content of G and C nucleotides in RNAi sequence (best target between 35-55%)
@@ -423,11 +423,11 @@ Columns explanation:
 * RNAi_sense - sense strand of RNAi (reverse-complement to the RNAi_seq)
 * repeated_motif - sequences with repeated sequences of the same nucleotide inside RNAi
 * repeated_motif_pct - percent of nucleotides from sequences with repeated sequences of the same nucleotide inside RNAi
-* score - algorithmically given points to particular RNAi sequences based on knowledge from previous works and papers:
-	-DOI:10.1093/nar/gkn902
-	-DOI:10.1093/nar/gkh247
-	-DOI:10.1038/nbt936
-	-DOI:10.1016/j.bbrc.2004.02.157
+* score - algorithmically given points to particular RNAi sequences based on knowledge from previous works and papers: \
+	-DOI:10.1093/nar/gkn902 \
+	-DOI:10.1093/nar/gkh247 \
+	-DOI:10.1038/nbt936 \
+	-DOI:10.1016/j.bbrc.2004.02.157 
 	
 * GC% - percent content of G and C nucleotides in RNAi sequence (best target between 35-55%)
 * sense_loop_complementary - part of sense strand RNAi complementary to the loop
