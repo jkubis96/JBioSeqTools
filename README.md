@@ -402,7 +402,7 @@ RNAi_data = st.loop_complementary_adjustment(RNAi_data, loop_seq, min_length=3)
 <br />
 
 Columns explanation:
-* RNAi_name - name added by algorithms w toku szukania i predykcji
+* RNAi_name - name added by algorithms in the course of searching and predicting RNAi's
 * RNAi_seq - the sequence of RNAi (reverse-complementary to a sequence that should be silenced)
 * target - name of the targeted sequence
 * e-value (expect value) - the probability of finding the observed alignment or a better one by random chance
