@@ -1150,9 +1150,9 @@ pd.DataFrame(project['rnai']['full_data'])
 ```
 
 ##### Examples with structure description presented in:
- - 1.23. [Prediction of RNAi on the provided sequence](#rnai-prediction) \
- - 1.24. [Correcting of RNAi_data for complementarity to the loop sequence](#correcting-loop) \
- - 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) \
+ - 1.23. [Prediction of RNAi on the provided sequence](#rnai-prediction) 
+ - 1.24. [Correcting of RNAi_data for complementarity to the loop sequence](#correcting-loop) 
+ - 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) 
 
 
 <br />
@@ -1611,9 +1611,9 @@ pd.DataFrame(project['rnai']['full_data'])
 ```
 
 ##### Examples with structure description presented in:
- - 1.23. [Prediction of RNAi on the provided sequence](#rnai-prediction) \
- - 1.24. [Correcting of RNAi_data for complementarity to the loop sequence](#correcting-loop) \
- - 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) \
+ - 1.23. [Prediction of RNAi on the provided sequence](#rnai-prediction) 
+ - 1.24. [Correcting of RNAi_data for complementarity to the loop sequence](#correcting-loop) 
+ - 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) 
 
 
 <br />
