@@ -20,7 +20,7 @@
 ## Description
 
 
-<div align="justify"> 'JBioSeqTools is the Python library for biological sequence optimization (GC % content & codon frequency), restriction places removal, DNA/RNA structure prediction, and RNAi selection. It also allows the building of many plasmid vectors with the possibility of choosing sequences such as transcript, promoter, enhancer, molecular fluorescent tag, etc. Finally, the user obtains a ready-for-order construct with a whole sequence and visualization. Package description  on https://github.com/jkubis96/JBioSeqTools'
+<div align="justify"> JBioSeqTools is the Python library for biological sequence optimization (GC % content & codon frequency), restriction places removal, DNA/RNA structure prediction, and RNAi selection. It also allows the building of many plasmid vectors with the possibility of choosing sequences such as transcript, promoter, enhancer, molecular fluorescent tag, etc. Finally, the user obtains a ready-for-order construct with a whole sequence and visualization.
 </div>
 
 </br>
@@ -67,7 +67,7 @@ Used databases:
 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) \
 1.26. [Codon optimization](#optimize) \
 1.27. [Checking susceptibility to restriction enzymes](#resctriction) \
-1.28. [Checking and removing susceptibility to restriction enzymes](#resctriction-remove) \
+1.28. [Checking and removing susceptibility to restriction enzymes](#resctriction-remove) 
 2. [vector_build - part of the library containing building plasmid vectors with optimization elements from seq_tools](#vector-build) \
 2.1. [Import part of library](#import-vector_build) \
 2.2. [Creating vector plasmid](#creating-vector) \
@@ -625,8 +625,8 @@ input_dict = {
     'fluorescence_polya_name':'',
     
     
-    # WARNING! If provided sequences for transcripts (> 0) and do not need additional promoter for fluorescent tag, provide fluorescence_linker_sequence
-    
+    # WARNING! If provided sequences for transcripts (> 0) and do not need additional promoter for fluorescent tag, provide fluorescence_linker_sequence or provide empty string ''.
+
     # POSSIBLE!
     # sequence of provided fluorescence tag linker
     # name and sequence the user can take from metadata['linkers'] (load_metadata())
@@ -902,33 +902,33 @@ input_dict = {
     # if the number of transcript sequences is equal 1 then provide empty list []
     # if the user wants to not provide any linkers between the transcript sequences, provide an empty string '' for each pair of transcripts where the user wants to avoid linker; empty strings '' provide inside the list ['']
     'linkers_sequences':[''],
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occures, if not empty string ''!
     # names of provided linkers
     # if the number of transcript sequences is equal 1 then provide empty list []
     # if the user wants to not provide any linkers between the transcript sequences, provide an empty string '' for each pair of transcripts where the user wants to avoid linker; empty strings '' provide inside the list ['']
     'linkers_names':[''],
     
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occurs or fluorescent tag will be included, if not empty string ''!
     # sequence of provided promoter
     # sequence orientation 5' ---> 3' - sense
     'promoter_sequence':'',
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occurs or fluorescent tag will be included, if not empty string ''!
     # name of provided promoter sequence
     'promoter_name':'',
     
-    # POSSIBLE if transcript sequence occure, if not empty string ''!
+    # POSSIBLE if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
     # sequence of provided enhancer
     # sequence orientation 5' ---> 3' - sense
     'regulator_sequence':'',
-    # POSSIBLE if transcript sequence occure, if not empty string ''!
+    # POSSIBLE if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
     # name of provided enhancer sequence
     'regulator_name':'',
     
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occurs or fluorescent tag will be included, if not empty string ''!
     # sequence of provided polyA signal
     # sequence orientation 5' ---> 3' - sense
     'polya_sequence':'',
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occurs or fluorescent tag will be included, if not empty string ''!
     # name of provided polyA singla sequence
     'polya_name':'',
     
@@ -942,13 +942,13 @@ input_dict = {
     # if the user does not need fluorescent tag, provide ''
     'fluorescence_name':'',
     
-    # WARNING! If provided sequences for transcripts (> 0) and do not need additional promoter for fluorescent tag, provide fluorescence_linker_sequence
+    # WARNING! If provided sequences for transcripts (> 0), provide fluorescence_linker_sequence or provide empty string ''.
     
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # POSSIBLE if transcript sequence occures, if not empty string ''!
     # sequence of provided fluorescence tag linker
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_linker_sequence':'',
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # POSSIBLE if transcript sequence occures, if not empty string ''!
     # name of provided fluorescence tag linker
     'fluorescence_linker_name':'',
     
@@ -1225,7 +1225,7 @@ input_dict = {
     # if the user wants to not provide any linkers between the transcript sequences, provide an empty string '' for each pair of transcripts where the user wants to avoid linker; empty strings '' provide inside the list ['']
     # sequence orientation 5' ---> 3' - sense
     'linkers_sequences':[''],
-    # REQUIRED if transcript sequence occure, if not empty string ''!
+    # REQUIRED if transcript sequence occures, if not empty string ''!
     # names of provided linkers
     # if the number of transcript sequences is equal 1 then provide empty list []
     # if the user wants to not provide any linkers between the transcript sequences, provide an empty string '' for each pair of transcripts where the user wants to avoid linker; empty strings '' provide inside the list ['']
