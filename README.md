@@ -531,7 +531,7 @@ input_dict = {
     'vector_function':'expression',
     
     # REQUIRED!
-    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (mouse + rat) / multi (mouse + rat + human))
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
     # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
     'species':'human',
     
@@ -849,7 +849,7 @@ input_dict = {
     'vector_function':'rnai',
     
     # REQUIRED!
-    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (mouse + rat) / multi (mouse + rat + human))
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
     # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
     'species':'human',
     
@@ -1202,7 +1202,7 @@ input_dict = {
     'vector_function':'mrna',
     
     # REQUIRED!
-    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (mouse + rat) / multi (mouse + rat + human))
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
     # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
     'species':'human',
     
@@ -1435,7 +1435,7 @@ input_dict = {
     'vector_function':'rnai',
     
     # REQUIRED!
-    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (mouse + rat) / multi (mouse + rat + human))
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
     # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
     'species':'human',
     
@@ -1620,7 +1620,6 @@ pd.DataFrame(project['rnai']['full_data'])
 
 
 ```
-
 
 		>name1_start:1_stop:130_length:130 visible=True
         CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
