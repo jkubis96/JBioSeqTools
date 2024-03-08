@@ -858,7 +858,7 @@ input_dict = {
     # for coding sequences the user should choose the promoter of non-coding genes (metadata['promoters']['type'] == 'non-coding')
     # sequence orientation 5' ---> 3' - sense
     'promoter_ncrna_sequence':'',
-	# REQUIRED!
+    # REQUIRED!
     # name of provided promoter sequence
 	'promoter_ncrna_name':'',
 
@@ -873,7 +873,7 @@ input_dict = {
     # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien or Mus musculus)
     # algorithm is working when the rnai_sequence is empty ''
     # if the user defines 'rnai_sequence' this 'rnai_gene_name' is just a name for a user-supplied sequence
-	# 'rnai_gene_name' - provide in the HGNC nomenclature
+    # 'rnai_gene_name' - provide in the HGNC nomenclature
     'rnai_gene_name':'',
     
     # REQUIRED!
@@ -1621,22 +1621,21 @@ pd.DataFrame(project['rnai']['full_data'])
 
 ```
 
-		>name1_start:1_stop:130_length:130 visible=True
-        CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
+	>name1_start:1_stop:130_length:130 visible=True
+	CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
         
-        >name2_start:131_stop:157_length:27 visible=False
-        TCTAGACAACTTTGTATAGAAAAGTTG
+	>name2_start:131_stop:157_length:27 visible=False
+	TCTAGACAACTTTGTATAGAAAAGTTG
         
-        >name3_start:158_stop:617_length:460 visible=True
-        GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
+	>name3_start:158_stop:617_length:460 visible=True
+	GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
         
-        Header explanation:
-            name1,2,3,... - the name of the sequence element
-            start - beginning of the sequence in the plasmid vector
-            stop - end of the sequence in the plasmid vector
-            length - the length of the sequence
-            visible - True or False, if the element ought to 
-            be displayed and signed or not on the graph
+	Header explanation:
+		name1,2,3,... - the name of the sequence element
+		start - beginning of the sequence in the plasmid vector
+		stop - end of the sequence in the plasmid vector
+		length - the length of the sequence
+		visible - True or False, if the element ought to be displayed and signed or not on the graph
 
 ```
 
