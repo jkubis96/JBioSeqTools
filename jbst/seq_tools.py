@@ -92,12 +92,31 @@ def fetch_refseq_sequences(accession_numbers):
                 for feature in record.features:
                     feature_type = feature.type
                     feature_location = feature.location
-                    try:
-                        tmp = {'start':int(feature_location.start.position.real),
-                               'stop':int(feature_location.end.position.real)}
+                    
+                    try: 
+                        # version 1.81 - error
+                        
+                        feature_location.start.position.real
+                            
+                        try:
+                            tmp = {'start':int(feature_location.start.position.real),
+                                   'stop':int(feature_location.end.position.real)}
+                        except:
+                            tmp = {'start':int(feature_location.start.position.real),
+                                   'stop':int(feature_location.start.position.real)}
+                            
                     except:
-                        tmp = {'start':int(feature_location.start.position.real),
-                               'stop':int(feature_location.start.position.real)}
+                        
+                        #version > 1.81
+                        try:
+                            tmp = {'start':int(feature_location.start.real),
+                                   'stop':int(feature_location.end.real)}
+                        except:
+                            tmp = {'start':int(feature_location.start.real),
+                                   'stop':int(feature_location.start.real)}
+                            
+                        
+                        
                         
                     feature_dict[feature_type] = tmp
 

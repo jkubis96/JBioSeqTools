@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.2' 
+VERSION = '2.0.3' 
 DESCRIPTION = 'JBioSeqTools'
 LONG_DESCRIPTION = 'JBioSeqTools is the Python library for biological sequence optimization (GC % content & codon frequency), restriction places removal, DNA/RNA structure prediction, and RNAi selection. It also allows the building of many plasmid vectors with the possibility of choosing sequences such as transcript, promoter, enhancer, molecular fluorescent tag, etc. Finally, the user obtains a ready-for-order construct with a whole sequence and visualization. Package description  on https://github.com/jkubis96/JBioSeqTools'
 
@@ -14,7 +14,7 @@ setup(
         long_description=LONG_DESCRIPTION,
         packages=['jbst'],
         include_package_data=True,
-        install_requires=['pandas', 'tqdm', 'matplotlib', 'numpy', 'requests', 'openpyxl', 'pymsaviz', 'ViennaRNA', 'biopython', 'networkx', 'seaborn', 'scipy'],       
+        install_requires=['pandas', 'tqdm', 'matplotlib', 'numpy', 'requests', 'openpyxl', 'pymsaviz==0.4.2', 'ViennaRNA==2.6.4', 'biopython==1.81', 'networkx==3.1', 'seaborn', 'scipy'],       
         keywords=['sequence', 'optimization', 'vectors', 'AAV', 'GC', 'restriction enzyme'],
         license = 'MIT',
         classifiers = [

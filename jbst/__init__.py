@@ -15,7 +15,7 @@ pattern = """
 print(pattern)
 
 print('')
-print('Welcome in JBioSeqTools v.2.0.2 library')
+print('Welcome in JBioSeqTools v.2.0.3 library')
 print('')
 print('Loading required packages...')
 
