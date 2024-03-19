@@ -407,7 +407,7 @@ def get_sequences_gene(gene_name:str, species:str = 'human', max_results:int = 2
             time.sleep(30)
             
             if n == 3:
-                print('\Something went wrong - get_sequences_gene. This query is unable to return. Try again later or contact us!')                
+                print('\nSomething went wrong - get_sequences_gene. This query is unable to return. Try again later or contact us!')                
                 return None
 
 
