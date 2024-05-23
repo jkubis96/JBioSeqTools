@@ -14,6 +14,9 @@ pd.options.mode.chained_assignment = None
 import warnings
 
 warnings.filterwarnings("ignore")
+import random
+
+random.seed(42)
 
 
  #       _  ____   _         _____              _                      __ _____  __  
@@ -30,7 +33,10 @@ def get_package_directory():
     return pkg_resources.resource_filename(__name__, '')
 
 
+
 _cwd = str(get_package_directory())
+
+
 
 
 from jbst.seq_tools import *
@@ -45,7 +51,6 @@ def random_name(length=30):
     return name
 
 
-  
 
 def determine_rnai_top1_seq(RNAi_data, loop_seq, gc_max = 55, gc_min = 35, end_3 = 'TT', rnai_type = 'sh'):
     
@@ -355,7 +360,7 @@ def remove_restriction_places(restriction_df:pd.DataFrame(), enzyme_list:list() 
         enzyme_list = []
         check = True
         enzyme_n = 1
-        while (check == True):
+        while(check == True):
             print('\nProvide enzyme id, if no restriction sites are relevant to your experiment or you have already provided all enzyme ids, write "x"')
             enzyme = input('\n Enter enzyme '+ str(enzyme_n) + ' id: ')
             if len(enzyme) != 0 and not enzyme.isalpha() and int(enzyme) in restriction_df.index:
@@ -421,6 +426,7 @@ def repair_restriction_vector(project, metadata, species):
     project['transcripts']['sequences']['not_repaired'] = []
     if len(project['transcripts']['sequences']['enzymes']) != 0:
         for trans in range(0,len(project['transcripts']['sequences']['name'])):
+            break
             final_sequence, not_repaired, enzyme_restriction, restriction_df =  repair_sequences(project['transcripts']['sequences']['vector_sequence'][trans], metadata, project['transcripts']['sequences']['full_restriction'][trans], project['transcripts']['sequences']['enzymes'][trans] , species)
             project['transcripts']['sequences']['vector_sequence'][trans] = final_sequence
             project['transcripts']['sequences']['not_repaired'].append(not_repaired)
@@ -1175,7 +1181,6 @@ def create_vector_from_dict_transcription(metadata, input_dict, show_plot = True
                 project['elements']['vector']['selection_marker_name'] = input_dict['selection_marker_name']
                 
                 
-                #poprawic stop check
                 promoter_dec = 'single'
         
                     
@@ -2097,7 +2102,6 @@ def create_vector_from_dict_expression(metadata, input_dict, show_plot = True):
     
         
             
-            #poprawic stop check
             if len(project['elements']['fluorescence']['sequence']) > 0 and len(project['elements']['fluorescence']['polya_seq']) > 0 and len(project['elements']['fluorescence']['promoter_seq']) > 0:
                 promoter_dec = 'multi'
             else:

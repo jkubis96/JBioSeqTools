@@ -15,7 +15,7 @@ pattern = """
 print(pattern)
 
 print('')
-print('Welcome in JBioSeqTools v.2.0.3 library')
+print('Welcome in JBioSeqTools v.2.0.8 library')
 print('')
 print('Loading required packages...')
 
@@ -40,7 +40,6 @@ if 'installation.dec' not in os.listdir(_libd):
     import subprocess
     
     jseq_install()
-    subprocess.run("echo 'False' > installation.dec", shell=True, cwd=_libd)
    
  
    

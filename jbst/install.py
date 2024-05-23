@@ -13,6 +13,8 @@ pd.options.mode.chained_assignment = None
 import warnings
 import json
 import subprocess
+import gdown
+
 
 warnings.filterwarnings("ignore")
 
@@ -50,22 +52,24 @@ def create_temporary_directory(source = None):
 def download_and_prepare_UTRs(source = None, min_size = 50):
     
  
-    
-    import urllib
     import gzip
     import shutil
     
     if source == None:
         source = os.getcwd()
         
-    url = 'http://srv00.recas.ba.infn.it/webshare/utrdb/Homo_sapiens.GRCh38.107.utrs.gz'
+
 
     local_filename = 'Homo_sapiens.GRCh38.107.utrs.gz'
     
     local_filename = os.path.join(source, local_filename)
     
+    
+    url = 'https://drive.google.com/uc?id=1lMKGwNvHjAPE16xjSjSeb8NlH78hnREO'
+    
     # Download 
-    urllib.request.urlretrieve(url, local_filename)
+    gdown.download(url, local_filename, quiet=False)
+
     
     # Unzip 
     
@@ -77,6 +81,7 @@ def download_and_prepare_UTRs(source = None, min_size = 50):
         with open(file_path, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
     
+
 
     
     def read_fasta(file_path):
@@ -300,8 +305,8 @@ def download_and_prepare_UTRs(source = None, min_size = 50):
 
 def install_muscle(source = None):
 
-    windows = 'https://drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86win32.exe'
-    linux = 'https://drive5.com/muscle/muscle_src_3.8.1551.tar.gz'
+    windows = 'https://drive.google.com/uc?id=1u-wqA2e2cqSLjY1JzpYqNUYmAX6zp8fl'
+    linux = 'https://drive.google.com/uc?id=1ZHP_bB7iTRZ8-73TsDrNLxIcQoPrvTLF'
     
     
     system = platform.system()
@@ -320,14 +325,9 @@ def install_muscle(source = None):
             os.makedirs(os.path.join(source, 'muscle/windows'))
 
         
-        # Download the file
-        response = requests.get(windows)
-        if response.status_code == 200:
-            with open(muscle_executable, 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"\nFailed to download the file. HTTP status code: {response.status_code}")
-            exit(1)
+        # Download 
+        gdown.download(windows, muscle_executable, quiet=False)
+        
         
 
 
@@ -339,14 +339,9 @@ def install_muscle(source = None):
             os.makedirs(os.path.join(source, 'muscle/linux'))
 
         
-        # Download the file
-        response = requests.get(linux)
-        if response.status_code == 200:
-            with open(muscle_executable, 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"\nFailed to download the file. HTTP status code: {response.status_code}")
-            exit(1)
+        # Download 
+        gdown.download(linux, muscle_executable, quiet=False)
+        
             
         with tarfile.open(muscle_executable, 'r:gz') as tar:
             tar.extractall(path=os.path.join(source, 'muscle/linux/'))
@@ -365,8 +360,9 @@ def install_muscle(source = None):
 
 def install_blast(source = None):
     
-    windows = 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.14.1/ncbi-blast-2.14.1+-x64-win64.tar.gz'
-    linux = 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.14.1/ncbi-blast-2.14.1+-x64-linux.tar.gz'
+    
+    windows = 'https://drive.google.com/uc?id=1yRw1kWE6UBARHvWJG4oycMT_4fnahvFt'
+    linux = 'https://drive.google.com/uc?id=1EaBPPWuElsrm89-dusAomm0Gq6Php4f6'
     
     
     system = platform.system()
@@ -386,13 +382,8 @@ def install_blast(source = None):
 
         
         # Download the file
-        response = requests.get(windows)
-        if response.status_code == 200:
-            with open(blast, 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"\nFailed to download the file. HTTP status code: {response.status_code}")
-            exit(1)
+        gdown.download(windows, blast, quiet=False)
+
             
         with tarfile.open(blast, 'r:gz') as tar:
             tar.extractall(path=os.path.join(source, 'blast/windows/'))
@@ -407,17 +398,10 @@ def install_blast(source = None):
         
         if not os.path.exists(os.path.join(source, 'blast/linux')):
             os.makedirs(os.path.join(source, 'blast/linux'))
-
         
         # Download the file
-        response = requests.get(linux)
-        if response.status_code == 200:
-            with open(blast, 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"\nFailed to download the file. HTTP status code: {response.status_code}")
-            exit(1)
-            
+        gdown.download(linux, blast, quiet=False)
+          
         with tarfile.open(blast, 'r:gz') as tar:
             tar.extractall(path=os.path.join(source, 'blast/linux/'))
             
@@ -428,7 +412,7 @@ def install_blast(source = None):
         
  
 
-def download_refseq_db(path_to_save = None, db = 'refseq_select_rna'):    
+def download_refseq_db(path_to_save = None):    
 
     if path_to_save == None:
         path_to_save = os.getcwd() 
@@ -446,50 +430,29 @@ def download_refseq_db(path_to_save = None, db = 'refseq_select_rna'):
         print("\nLinux operating system")        
         path_to_save = os.path.join(path_to_save, 'blast/linux/ncbi-blast-2.14.1+/bin')
 
-    
-    
-    # Define the FTP URL and directory
-    ftp_url = "ftp.ncbi.nlm.nih.gov"
-    ftp_directory = "/blast/db/"
-    
-    # Connect to the FTP server
-    ftp = FTP(ftp_url)
-    ftp.login()
-    
-    # Change to the directory containing RefSeq RNA databases
-    ftp.cwd(ftp_directory)
-    
-    # List the available files in the directory
-    file_list = ftp.nlst()
-    
-    # Define the name of the RefSeq RNA database you want to download    
-    
-    file_list = [x for x in file_list if db in x and x.endswith('tar.gz') and not x.endswith('md5')]
-    
-    for file in tqdm(file_list):
-        local_file_path = os.path.join(path_to_save, file)
-    
-        # Download the database file
-        with open(local_file_path, 'wb') as local_file:
-            ftp.retrbinary('RETR ' + file, local_file.write)
-            
-        with tarfile.open(local_file_path, 'r:gz') as tar:
-            tar.extractall(path=path_to_save)
-            
+    file = 'refseq_select_rna.tar.gz'
 
-        
-        try:
-            os.remove(local_file_path)
-            print(f'{local_file_path} successfully deleted.')
-        except OSError as e:
-            print(f'Error: {local_file_path} - {e.strerror}')
+    local_file_path = os.path.join(path_to_save, file)
+    
+    
+    ref_seq = 'https://drive.google.com/uc?id=1e6Gi1OWlvFPeVOCEGaoZ85Fi470MXy0z'
+
+    gdown.download(ref_seq, local_file_path, quiet=False)
+
+
+
+    with tarfile.open(local_file_path, 'r:gz') as tar:
+        tar.extractall(path=path_to_save)
+
+    
+    try:
+        os.remove(local_file_path)
+        print(f'{local_file_path} successfully deleted.')
+    except OSError as e:
+        print(f'Error: {local_file_path} - {e.strerror}')
         
             
-        
-        print(f"\n{db} has been downloaded to {local_file_path}")
-    
-    # Close the FTP connection
-    ftp.quit()
+    print(f"\nThe refseq_select_rna has been downloaded to {local_file_path}")
     
   
     
@@ -511,10 +474,11 @@ def jseq_install(source = _cwd):
     """
 
     try:
+        
         create_temporary_directory(source = source)
         install_muscle(source = source)
         install_blast(source = source)
-        download_refseq_db(path_to_save = source, db = 'refseq_select_rna')
+        download_refseq_db(path_to_save = source)
         
         utr5, utr3 = download_and_prepare_UTRs(source = source, min_size = 50)
           
@@ -534,6 +498,10 @@ def jseq_install(source = _cwd):
         
         with open(file_path, 'w') as json_file:
             json.dump(utr3, json_file)
+            
+            
+        subprocess.run("echo 'False' > installation.dec", shell=True, cwd= source)
+
             
     except:
         print('Trouble with first installation! Try again or contact us!')

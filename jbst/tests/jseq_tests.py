@@ -25,17 +25,28 @@ def test_vectors(tests_dictonaries, tests_dictonaries_names, non, metadata, show
     passed = []
     errored = []
     
+    fail = False
     for l, i in enumerate(tests_dictonaries):
+        if fail:
+            break
         for n, di in enumerate(tqdm(tests_dictonaries[l])):
             try:
                 project = vector_create_on_dict(metadata, di, show_plot = show_plot)
                 if project == None and tests_dictonaries_names[l][n] not in non:
                     errored.append(tests_dictonaries_names[l][n])
+                    print(f'\n\nTest id:{str(tests_dictonaries_names[l][n])} not passed!')
+                    print('Further testing interrupted!\nCheck if all dependencies was installed properly during first run!\nCheck the internet connection!\nIf all should be ok, contact us!')
+                    fail = True
+                    break
+                
                 else:
                     passed.append(tests_dictonaries_names[l][n])
                 
             except:
                 errored.append(tests_dictonaries_names[l][n])
+                
+    if len(errored) == 0: 
+        print('All tests passed successfully!')
                 
     return passed, errored
 
@@ -4947,9 +4958,9 @@ test_transcription_list_names = ['input_dict_transcript_rnai_1', 'input_dict_tra
 
 
 
-tests_dictonaries = [test_expression_list, test_rnai_list, test_transcription_list]
+tests_dictonaries = [test_rnai_list, test_transcription_list, test_expression_list]
 
-tests_dictonaries_names = [test_expression_list_names, test_rnai_list_names, test_transcription_list_names]
+tests_dictonaries_names = [test_rnai_list_names, test_transcription_list_names, test_expression_list_names]
 
 non = ['input_dict_expression_333', 'input_dict_rnai_7', 'input_dict_expression_4444444', 'input_dict_expression_44444441', 
        'input_dict_rnai_12', 'input_dict_rnai_777','input_dict_rnai_888', 'input_dict_rnai_1212',

@@ -23,7 +23,9 @@ import xml.etree.ElementTree as ET
 import warnings
 import json
 import time
+import random
 
+random.seed(42)
 
  #       _  ____   _         _____              _                      __ _____  __  
  #      | ||  _ \ (_)       / ____|            | |                    / /|  __ \ \ \ 
@@ -731,7 +733,7 @@ def ExtractConsensuse(alignment_file, refseq_sequences = None):
             nuc = []
             for c in range(len(seq_list)):
                 nuc.append(seq_list[c][j])
-                #poprawić na fascie bo popsulem
+                
             if len(set(nuc)) == 1 and '-' not in nuc and j != len(seq_list[0]) - 1:
                 con_tmp = con_tmp + str(seq_list[c][j]) 
             else:
@@ -2082,27 +2084,26 @@ def check_restriction(sequence:str, metadata):
     """
     
     try:
-        
+   
         restriction = metadata['restriction']
         
         enzyme_restriction = {'name':[], 'restriction_place':[], 'restriction_sequence':[], 'start':[], 'stop':[]}
         
+        #repaired :D
+        bmp = list(sequence.upper())
         for r in tqdm(restriction.index):
-            check = True
             if restriction['sequence'][r] in sequence.upper():
-                while(check == True):
-                    bmp = list(sequence.upper())
-                    for n in range(0,len(restriction['sequence'][r])):
-                        for j in range(n,len(bmp)-len(restriction['sequence'][r])):
-                           lower = j
-                           upper = j + len(restriction['sequence'][r])
-                           if upper < len(bmp) and ''.join(bmp[lower:upper]) == restriction['sequence'][r]:
-                                enzyme_restriction['name'].append(restriction['name'][r])
-                                enzyme_restriction['restriction_sequence'].append(restriction['sequence'][r])
-                                enzyme_restriction['restriction_place'].append(restriction['restriction_place'][r])
-                                enzyme_restriction['start'].append(lower)
-                                enzyme_restriction['stop'].append(upper)
-                                check = False
+                for n in range(0,len(restriction['sequence'][r])):
+                    for j in range(n,len(bmp), len(restriction['sequence'][r])):
+                       lower = j                       
+                       upper = j + len(restriction['sequence'][r])
+                       if upper < len(bmp) and ''.join(bmp[lower:upper]) == restriction['sequence'][r]:
+                            enzyme_restriction['name'].append(restriction['name'][r])
+                            enzyme_restriction['restriction_sequence'].append(restriction['sequence'][r])
+                            enzyme_restriction['restriction_place'].append(restriction['restriction_place'][r])
+                            enzyme_restriction['start'].append(lower)
+                            enzyme_restriction['stop'].append(upper)
+                            
     
                                    
         enzyme_restriction = pd.DataFrame.from_dict(enzyme_restriction)
@@ -2262,49 +2263,24 @@ def repair_sequences(sequence, metadata, restriction_df, enzyme_list, species):
             print('\nwere unable to optimize:')
             print('\nRest of chosen restriction places in the sequence has repaired...')
     
-    
-        enzyme_restriction = {'name':[], 'restriction_place':[], 'restriction_sequence':[], 'sequence':[], 'start':[], 'stop':[]}
-        
+            
         print('\nChecking the new restriction places...')
-        for r in tqdm(restriction.index):
-            check = True
-            if restriction['sequence'][r] in final_sequence:
-                while(check == True):
-                    bmp = list(final_sequence.upper())
-                    for n in range(0,len(restriction['sequence'][r])):
-                        for j in range(n,len(bmp)-len(restriction['sequence'][r])):
-                           lower = j
-                           upper = j + len(restriction['sequence'][r])
-                           if upper < len(bmp) and ''.join(bmp[lower:upper]) == restriction['sequence'][r]:
-                                enzyme_restriction['name'].append(restriction['name'][r])
-                                enzyme_restriction['restriction_sequence'].append(restriction['sequence'][r])
-                                enzyme_restriction['restriction_place'].append(restriction['restriction_place'][r])
-                                enzyme_restriction['sequence'].append(final_sequence)
-                                enzyme_restriction['start'].append(lower)
-                                enzyme_restriction['stop'].append(upper)
-                                check = False
-    
+        
+        enzyme_restriction, restriction_df2  = check_restriction(final_sequence, metadata)
                                    
         enzyme_restriction = pd.DataFrame.from_dict(enzyme_restriction)
         enzyme_restriction = enzyme_restriction.drop_duplicates()
         enzyme_restriction = enzyme_restriction.reset_index(drop=True)
         enzyme_restriction = enzyme_restriction[~enzyme_restriction['name'].isin(restriction_df['name'])]
         
-        if len(enzyme_restriction['name']) > 0:
-            restriction_df = enzyme_restriction.copy()
-            restriction_df['index'] = restriction_df.index
-            restriction_df = restriction_df[['name', 'index']]
-            restriction_df['index'] = [[x] for x in restriction_df['index']]
-            restriction_df = restriction_df.groupby('name').agg({'index': 'sum'})
-            restriction_df = restriction_df.reset_index()
-    
-        elif len(enzyme_restriction['name']) == 0:
-            restriction_df = enzyme_restriction
+        
+        if len(enzyme_restriction['name']) == 0:
             print('\nAny new restriction places were not created')
         else:
             print('\nNew restriction places were created:')
             for name in enzyme_restriction['name']:
                 print(name)
+    
     
     else:
         enzyme_restriction = {'name':[], 'restriction_place':[], 'restriction_sequence':[], 'start':[], 'stop':[]}
@@ -2312,7 +2288,7 @@ def repair_sequences(sequence, metadata, restriction_df, enzyme_list, species):
         not_repaired = []
         final_sequence = sequence
 
-    return final_sequence, not_repaired, enzyme_restriction, restriction_df
+    return final_sequence, not_repaired, enzyme_restriction, pd.DataFrame(restriction_df2)
 
 
 
