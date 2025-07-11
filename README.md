@@ -4,7 +4,7 @@
 
 
 <p align="right">
-<img  src="https://github.com/jkubis96/GEDSpy/blob/main/fig/logo_jbs.PNG?raw=true" alt="drawing" width="250" />
+<img  src="https://github.com/jkubis96/Logos/blob/main/logos/jbs_current.png?raw=true" alt="drawing" width="200" />
 </p>
 
 
@@ -26,10 +26,10 @@
 </br>
 
 Used databases:
-* GeneScript [https://www.genscript.com/?src=google&gclid=Cj0KCQiAkMGcBhCSARIsAIW6d0CGxHmZO8EAYVQSwgk5e3YSRhKZ882vnylGUxfWuhareHFkJP4h4rgaAvTNEALw_wcB]
-* VectorBuilder [https://en.vectorbuilder.com/]
-* UTRdb [https://utrdb.cloud.ba.infn.it/utrdb/index_107.html]
-* NCBI refseq_select_rna [ftp.ncbi.nlm.nih.gov]
+* [GeneScript](https://www.genscript.com/?src=google&gclid=Cj0KCQiAkMGcBhCSARIsAIW6d0CGxHmZO8EAYVQSwgk5e3YSRhKZ882vnylGUxfWuhareHFkJP4h4rgaAvTNEALw_wcB)
+* [VectorBuilder](https://en.vectorbuilder.com/)
+* [UTRdb](https://utrdb.cloud.ba.infn.it/utrdb/index_107.html)
+* [NCBI refseq_select_rna](ftp.ncbi.nlm.nih.gov)
 
 <br />
 
@@ -67,7 +67,8 @@ Used databases:
 1.25. [Correcting of RNAi_data for complementarity to the additional external sequence](#correcting-sequence) \
 1.26. [Codon optimization](#optimize) \
 1.27. [Checking susceptibility to restriction enzymes](#resctriction) \
-1.28. [Checking and removing susceptibility to restriction enzymes](#resctriction-remove) 
+1.28. [Checking and removing susceptibility to restriction enzymes](#resctriction-remove) \
+1.29. [Sequence comparison (Interval Fold Change Estimation)](#comp-ifce)
 2. [vector_build - part of the library containing building plasmid vectors with optimization elements from seq_tools](#vector-build) \
 2.1. [Import part of library](#import-vector_build) \
 2.2. [Creating vector plasmid](#creating-vector) \
@@ -78,8 +79,14 @@ Used databases:
 2.3. [Creating vector plasmid from FASTA - display existing or custom editing FASTA file](#vector-fasta) \
 2.3.1 [Loading fasta from the file](#fasta2-loading) \
 2.3.2 [Converting the FASTA string to the data frame](#fasta-df) \
-2.3.3 [Decoding information form headers for the vector graph creating](#headers) \
-2.3.4 [Creating graph of the plasmid vector](#graph)
+2.3.3 [Decoding FASTA information](#headers) \
+2.3.4 [Creating graph of the plasmid vector](#graph) \
+2.3.5 [Writing FASTA format of the plasmid vector](#wrfa) \
+2.3.6 [Converting FASTA format to GeneBank format](#cvfagb) \
+2.3.7 [Writing GeneBank format of the plasmid vector](#wrgb) 
+
+
+
 
 <br />
 
@@ -120,6 +127,30 @@ from jbst import seq_tools as st
 metadata = st.load_metadata() 
 ```
 
+              
+
+    This function loads the metadata from library repository, which includes such elements like: 'codons', 'vectors', 'linkers', 'regulators', 'fluorescent_tag', 'backbone', 'promoters', 'restriction', 'polya_seq', 'selection_markers', 'rnai', 'capacity', 'utr5', 'utr3'.
+    These elements are necessary for algorithms, as well as, the database of regulatory genetic sequences for users to project vectors and other genetic therapeutics.
+    
+    Args:
+        
+       Some metadata is not necessary for algorithms of plasmid vector creation, such as:
+
+           linkers (bool) - linkers (sequences between coding sequences) and their  description, Default: True
+           loops (bool) - loops (sequences for creating shRNA / siRNA) and their  description, Default: True
+           regulators (bool) - regulators (regulatory sequence elements for expression enhancement) and their  description, Default: True
+           fluorescent_tag (bool) - fluorescent_tag (sequences coding fluorescent proteins) and their  description, Default: True 
+           promoters (bool) - promoters (previously described promoter sequences for providing coding and non-coding sequence transcription) and their  description, Default: True
+           polya (bool) - signal of polyadenylation sequences and their description, Default: True
+           marker (bool) - selection marker sequences for bacterial selection by resistance to antibiotics and their description, Default: True
+           utr5 (bool) - 5`UTR sequences and their  description, Default: True
+           utr3 (bool) - 3`UTR sequences and their  description, Default: True
+       
+      If the user uses external sources for providing these sequences and names, it can be set to False and these metadata will not load and reduce RAM usage.        
+          
+    Returns:
+        dict: Dictionary with the crucial set of metadata
+
 
 <br />
 
@@ -129,6 +160,27 @@ metadata = st.load_metadata()
 data_dict = st.get_sequences_gene(gene_name, species = 'human', max_results = 20)
 ```
 
+ 
+    This function gets sequences from NCBI database based on gene name & species
+        
+    Args:
+        gene_name (str) - name of searching gene in the HGNC nomenclature
+        species (str) - specie for which the gene sequence is searching (human / mouse / rat / both* / both2* / multi* / other**). Default: 'human'
+       
+            *both - gene sequences for Mus musculus and Homo sapiens
+            *both2 - gene sequences for Rattus norvegicus and Homo sapiens
+            *multi - gene sequences for Mus musculus, Rattus norvegicus, and Homo sapiens
+       
+            **other - the user can provide any species in Latin language via binomial nomenclature eg. Bos taurus, Zea mays, Sus scrofa, Danio rerio, Oryza sativa ...
+       
+        max_results (int) - number of maximal amount of results for the provided gene and species. Default: 20
+        input_dict (dict) - dictionary of metadata provided by the user
+
+    Returns:
+        dict: Dictionary including all sequence variants, their names, features, and IDs of provided gene
+       
+    
+
 <br />
 
 #### 1.4. Downloading  sequences with accession numbers <a id="downloading-accession"></a>
@@ -136,6 +188,17 @@ data_dict = st.get_sequences_gene(gene_name, species = 'human', max_results = 20
 ```
 data_dict = st.get_sequences_accesion(accesion_list)
 ```
+ 
+    This function gets sequences from NCBI database based on accession numbers
+        
+    Args:
+       accesion_list (list) - accession numbers or number of searching sequences inside list eg. ['X81403.1', 'KJ890665.1']; ['KJ890665.1']
+       
+
+    Returns:
+        dict: Dictionary including all sequences from the provided query, their names, features, and IDs
+       
+    
 
 <br />
 
@@ -144,6 +207,17 @@ data_dict = st.get_sequences_accesion(accesion_list)
 ```
 fasta_string = st.generate_fasta_string(data_dict)
 ```
+
+    
+    This function trnasform dictionaries from get_sequences_accesion() or get_sequences_gene() into FASTA format.
+        
+    Args:
+       data_dict (dict) - dictionaries from get_sequences_accesion() or get_sequences_gene()
+       
+
+    Returns:
+        txt: FASTA format of input dictionary
+       
 
 
 <br />
@@ -154,6 +228,18 @@ fasta_string = st.generate_fasta_string(data_dict)
 fasta_string = st.load_fasta(path)
 ```
 
+    
+    This function finds and removes restriction places inside the sequence.    
+    
+    Args:
+       path (str) - path to the FASTA file *.FASTA
+       
+
+    Returns:
+        str: Loaded FASTA file to the string object
+       
+    
+
 <br />
 
 #### 1.7. Writing to FASTA format *.FASTA <a id="writing-fasta"></a>
@@ -162,8 +248,18 @@ fasta_string = st.load_fasta(path)
 st.write_fasta(fasta_string, path = None, name = 'fasta_file')
 ```
 
+    
+    This function saves into FASTA *.fasta
+    
+    Args:
+        fasta_string (str/FASTA) - sequences provided in FASTA format from generate_fasta_string() or loaded from external sources
+        path (str | None) - the path to save. If None save it to the current working directory. Default: None
+        name (str) - the name of the saving file. Default: 'fasta_file'
+
+
 
 <br />
+
 
 #### 1.8. Conducting Multiple Alignments Analysis (MUSCLE) form FASTA <a id="muscle"></a>
 
@@ -171,6 +267,20 @@ st.write_fasta(fasta_string, path = None, name = 'fasta_file')
 alignment_file = st.MuscleMultipleSequenceAlignment(fasta_string, output = None, gapopen = 10, gapextend = 0.5)
 ```
 
+    This function conducts alignments of sequences provided in FASTA format
+    
+    Args:
+       fasta_string (str\FASTA) - sequences provided in FASTA format from generate_fasta_string() or loaded from external sources
+       gapopen (int | float) -  description under the link provided below. Default: 10 
+       gapextend (int | float) - description under the link provided below. Default:  0.5 
+       output (str | None) - path to the TMP alignment file. If None then the current working directory and the TMP file are removed. Default: None 
+       
+       More information in the source code of the primary function authors:
+           - https://www.drive5.com/muscle/
+
+    Returns:
+        txt: FASTA format of input dictionary
+       
 
 <br />
 
@@ -181,10 +291,30 @@ alignment_plot = st.DisplayAlignment(alignment_file, color_scheme="Taylor", wrap
 alignment_plot.savefig("alignment_plot.svg")
 ```
 
+    
+    This function makes the graphical presentation of the alignments
+    
+    Args:
+       alignment_file (Bio.Align.MultipleSeqAlignment class) - the output file from MuscleMultipleSequenceAlignment()
+       color_scheme (str) - color palette for plotting. Default: "Taylor"
+       wrap_length (int) - max number of nucleotides shown in a row on the graph. Default: 80 
+       show_grid (bool) - show the grid on the graph. Default: True
+       show_consensus (bool) - highlight the consensus sequences. Default: True
+       
+       More information in the source code of the primary function authors:
+           - https://pypi.org/project/pyMSAviz/
+
+    Returns:
+        graph: The graphical presentation of sequences alignments
+               
+       
+    
+<br />
+
 ##### Example of the alignment graph:
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JBioSeqTools/blob/v.2/fig/alignments.jpg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JBioSeqTools/blob/v.2/fig/alignments.jpg?raw=true" alt="drawing" width="700" />
 </p>
 
 
@@ -197,6 +327,20 @@ alignment_plot.savefig("alignment_plot.svg")
 ```
 decoded_alignment_file = st.decode_alignments(alignment_file)
 ```
+
+    
+    This function decodes the alignment file from MuscleMultipleSequenceAlignment() and converts it to FASTA-ALIGNMENT
+    
+    Args:
+       alignment_file (Bio.Align.MultipleSeqAlignment class) - the output file from MuscleMultipleSequenceAlignment()
+      
+
+    Returns:
+        txt: FASTA-ALIGNMENT format of input file
+       
+
+<br />
+
 
 ##### Example output:
 
@@ -220,6 +364,14 @@ Mus_musculus_survival_motor_neuron_1_(Smn1),_transcript_variant_1,_mRNA         
 st.write_alignments(decoded_alignment_file, path = None, name = 'alignments_file')
 ```
 
+    This function saves into FASTA-ALIGNMENT *.align
+    
+    Args:
+       decoded_alignment_file (str/FASTA) - sequences provided in FASTA format from decode_alignments()
+       path (str | None) - the path to save. If None save it to the current working directory. Default: None
+       name (str) - the name of the saving file. Default: 'alignments_file'
+
+       
 
 <br />
 
@@ -229,7 +381,15 @@ st.write_alignments(decoded_alignment_file, path = None, name = 'alignments_file
 consensuse = st.ExtractConsensuse(alignment_file, refseq_sequences = None)
 ```
 
-
+    This function extracts consensus fragments of sequences alignments from alignment_file obtained in the MuscleMultipleSequence Alignment() function
+    
+    Args:
+       alignment_file (Bio.Align.MultipleSeqAlignment class) - the output file from MuscleMultipleSequenceAlignment()
+       refseq_sequences (dict | None) - dictionary obtained from get_sequences_gene() or get_sequences_accesion(), which add additional information to results. If None results will be reduced to only consensus sequences.
+    
+    Returns:
+        dict: The dictionary containing consensus fragments
+       
 
 <br />
 
@@ -239,7 +399,13 @@ consensuse = st.ExtractConsensuse(alignment_file, refseq_sequences = None)
 sequence = st.load_sequence()
 ```
 
-
+    
+    This function makes it easy to load the genetic sequences to variable
+    
+    
+    Returns:
+        str: Input sequence in a variable
+       
 
 <br />
 
@@ -249,6 +415,16 @@ sequence = st.load_sequence()
 sequence = st.clear_sequence(sequence)
 ```
 
+        
+    This function clear sequence from special characters, spaces, numbers that may be in the sequence when copied from external sources.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+        upac_code (list) - list of nucleotides in which the sequence is encoded. Default: ['A','C','T','G','N','M','R','W','S','Y','K','V','H','D','B','U', 'Ψ']
+
+    Returns:
+        str: The genetic sequence after clearing
+       
 
 <br />
 
@@ -258,6 +434,14 @@ sequence = st.clear_sequence(sequence)
 dec_coding = st.check_coding(sequence)
 ```
 
+    This function checks that the input sequence belongs to the (CDS) coding sequence. Checkpoints include the start with ATG and include 3-nucleotide repeats.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+
+    Returns:
+        bool: True/False
+       
 
 <br />
 
@@ -267,6 +451,15 @@ dec_coding = st.check_coding(sequence)
 dec_upac = st.check_upac(sequence)
 ```
 
+    This function checks that the input sequence elements are included in UPAC code.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+        upac_code (list) - list of nucleotides in which the sequence is encoded. Default: ['A','C','T','G','N','M','R','W','S','Y','K','V','H','D','B','U', 'Ψ']
+
+    Returns:
+        bool: True/False
+       
 
 <br />
 
@@ -276,6 +469,14 @@ dec_upac = st.check_upac(sequence)
 reversed_sequence = st.reverse(sequence) 
 ```
 
+    This function reverses the input genetic sequence from 5' -> 3' to 3' -> 5' and opposite.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+
+    Returns:
+        str: The genetic sequence after reversing
+       
 
 <br />
 
@@ -285,6 +486,15 @@ reversed_sequence = st.reverse(sequence)
 complementary_sequence = st.complement(sequence)
 ```
 
+    This function makes a complementary sequence to the input genetic sequence on the nucleotide pairs from the extended UPAC code.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+
+    Returns:
+        str: The complementary sequence
+       
+
 <br />
 
 #### 1.19. Changing DNA to RNA sequence <a id="dna-rna"></a>
@@ -292,6 +502,16 @@ complementary_sequence = st.complement(sequence)
 ```
 rna_sequence = st.dna_to_rna(sequence, enrichment= False)
 ```
+
+    This function changes the sequence from DNA format to RNA.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+        enrichment (bool) - If True, the nucleotides in the RNA sequence instead of uracil (U) will be replaced with pseudouridine (Ψ) (True/False). Default: False
+
+    Returns:
+        str: The RNA sequence
+       
 
 <br />
 
@@ -301,6 +521,16 @@ rna_sequence = st.dna_to_rna(sequence, enrichment= False)
 dna_sequence = st.rna_to_dna(rna_sequence)
 ```
 
+    
+    This function changes the sequence from RNA format to DNA.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+
+    Returns:
+        str: The DNA sequence
+       
+
 <br />
 
 #### 1.21. Changing DNA or RNA sequence to amino acid / protein sequence <a id="dna-protein"></a>
@@ -308,6 +538,16 @@ dna_sequence = st.rna_to_dna(rna_sequence)
 ```
 protein_sequence = st.seuqence_to_protein(dna_sequence, metadata)
 ```
+
+    This function changes the sequence from (CDS) RNA or DNA format to protein sequence.
+    
+    Args:
+        sequence (str) - nucleotide sequence provided in UPAC code
+        metadata (dict) - set of metadata loaded vie load_metadata()
+
+    Returns:
+        str: The protein sequence
+       
 
 
 <br />
@@ -319,6 +559,23 @@ predisted_structure, dot_structure1 = st.predict_structure(sequence, show_plot =
 predisted_structure.savefig('predicted_structure.svg')
 
 ```
+
+    
+    This function makes the graphical of genetic RNA or DNA sequences.
+    
+    Args:
+       sequence (str) - nucleotide sequence provided in UPAC (ATGC) code 
+       height (int | float | None) - height of the graph
+       width (int | float | None) - height of the graph
+       len_factor (float) - is the factor regulating/correcting structure shape depending on sequence length. If your predicted structure looks different than the user expects, regulate this value (0.001-0.1). Default: 0.028
+       show_plot (bool) - if True the plot will be displayed, if False only the graph will be returned to the variable. Default: True
+       
+    Returns:
+        Graph: Graphical presentation of secondary DNA or RNA structure
+        DOT-graph: DOT presentation of secondary DNA or RNA structure
+
+
+<br />    
 
 ##### Example of structure prediction graph:
 
@@ -389,6 +646,20 @@ Columns explanation:
 RNAi_data = st.loop_complementary_adjustment(RNAi_data, loop_seq, min_length=3)
 ```
 
+    This function takes output DataFrame from Find RNAi() or remove_specific_to_sequence() reducing the RNAi score on their complementarity to the provided loop sequence.
+    It allows the choice of RNAi with better biological functionality.
+    
+    Args:
+       RNAi_data (DataFrame) - data frame obtained in the FindRNAi() or remove_specific_to_sequence() function
+       loop_seq (str) - sequence of the loop in the UPAC code for siRNA / shRNA creation
+       min_length (int) - min value of loop complementary nucleotides. Default: 3
+      
+
+    Returns:
+        DataFrame: Data frame containing predicted RNA sequence (sense / antisense), target, scores, and statistics corrected by reducing complementary to loop sequence.
+       
+
+
 <br />
 
 
@@ -439,6 +710,19 @@ Columns explanation:
 RNAi_data = st.remove_specific_to_sequence(RNAi_data, sequence, min_length=4)
 ```
 
+    This function takes output DataFrame from Find RNAi() or loop_complementary_adjustment() reducing the RNAi score on their complementarity to the provided external genetic sequence. eg sequence after codon optimization which is not included in NCBI ref_seq db.
+    It allows the choice of RNAi with better biological functionality.
+    
+    Args:
+       RNAi_data (DataFrame) - data frame obtained in the FindRNAi() or loop_complementary_adjustment() function
+       sequences (list | str) - nucleotide sequence provided in UPAC code
+       min_length (int) - min value of sequence complementary nucleotides. Default: 4
+      
+
+    Returns:
+        DataFrame: Data frame containing predicted RNA sequence (sense / antisense), target, scores, and statistics corrected by reducing complementary to another sequence.
+       
+
 <br />
 
 ##### Example of data frame output:
@@ -465,6 +749,20 @@ optimized_data = st.codon_otymization(sequence, metadata, species = 'human')
 ```
 
 
+    This function optimize procided genetic sequence.
+    
+    Args:
+       sequence (str) - nucleotide sequence provided in UPAC (ATGC)
+       metadata (dict) - set of metadata loaded vie load_metadata()
+       species (str) - species for which the codons are optimized in the sequence (human / mouse / rat). Default: 'human'
+       GC_pct (int) - desired GC content percentage of the optimized sequence. Default is 58.
+       correct_rep (int) - codon repetition threshold for optimization (eg. CCCCCCC, AAAAAAA). Default is 7.
+
+
+    Returns:
+        DataFrame: Data frame containing the optimized sequence / input sequence and their statistics
+       
+
 <br />
 
 
@@ -473,6 +771,17 @@ optimized_data = st.codon_otymization(sequence, metadata, species = 'human')
 ```
 all_restriction_places, reduced_restriction_places_with_indexes = st.check_restriction(sequence, metadata)
 ```
+
+    This function finds restriction places inside the sequence.    
+    
+    Args:
+       sequence (str) - nucleotide sequence provided in UPAC (ATGC)
+       metadata (dict) - set of metadata loaded vie load_metadata()
+      
+
+    Returns:
+        DataFrame: Data frame containing the restriction places and position of its occurrence in the provided genetic sequence
+        DataFrame: Data frame containing the parsed information about restriction places and their indexes to mapping to the first DataFrame
 
 
 
@@ -484,6 +793,55 @@ all_restriction_places, reduced_restriction_places_with_indexes = st.check_restr
 ```
 repaired_sequence_data = st.sequence_restriction_removal(sequence, metadata, restriction_places = [], species = 'human')
 ```
+
+    This function finds and removes restriction places inside the sequence.    
+    
+    Args:
+       sequence (str) - nucleotide sequence provided in UPAC (ATGC)
+       metadata (dict) - set of metadata loaded vie load_metadata()
+       restriction_places (list) - list of potential restriction places defined by the user to remove from the sequence. Default: []
+           *if the user did not define (empty list []) the potential restriction places to remove, the algorithm checks all possible restriction places, present it to the user (print), and asks him to choose which should be removed by writing IDs in consol.
+       species (str) - species for which the codons are exchanged to remove restriction places (human / mouse / rat). Default: 'human'      
+
+    Returns:
+        DataFrame: Data frame containing the sequence before restriction removal and sequence after restriction removal and their statistics
+       
+
+<br />
+
+
+
+#### 1.29. Sequence comparison (Interval Fold Change Estimation) <a id="comp-ifce"></a>
+
+```
+comparison = compare_sequences(sequence_1, 
+                    sequence_name_1,
+                    sequence_2, 
+                    sequence_name_2,
+                    sep = 1)
+```
+
+
+      Compares two character sequences and identifies differences at specified intervals.
+    
+      This function compares two input sequences (e.g., DNA, RNA, amino acids) character by character 
+      or in chunks of length `sep`. It returns a formatted text report showing the number of changes, the 
+      percentage of positions that differ, and a list of specific changes with their positions.
+    
+      Args:
+          sequence_1 (str): The first sequence to compare.
+          sequence_name_1 (str): A label or name for the first sequence (for display in the report).
+          sequence_2 (str): The second sequence to compare.
+          sequence_name_2 (str): A label or name for the second sequence (for display in the report).
+          sep (int, optional): Comparison step size; the number of characters to compare at a time. Default is 1.
+        
+      Returns:
+          str: A formatted textual report that includes:
+          - Names of the compared sequences,
+          - Number and percentage of positions with changes,
+          - A table listing the positions and the specific changes in the format: `original -> new`.
+    
+      
 
 <br />
 
@@ -505,6 +863,41 @@ from jbst import vector_build as vb
 ```
 project = vb.vector_create_on_dict(metadata, input_dict, show_plot=True)
 ```
+
+
+    This function change provided by user metadata into three types of vector plasmids:
+        -expression (artificial gene expression)
+        -RNAi (silencing)
+        -invitro transcription (used in mRNA vaccine, mRNA, RNAi, and peptides production)
+        
+    in three types of delivery systems:
+        -AAVs
+        -lentiviruses
+        -regular plasmid (for liposomes or other delivery systems)
+        
+    
+    Args:
+       metadata (dict) - matadata loaded in the load_metadata() function
+       input_dict (dict) - dictionary of metadata provided by the user
+       
+       
+    Examples:
+        -expression vector
+        -RNAi vector
+        -in-vitro transcription:
+            -RNAi
+            -mRNA
+            
+        Avaiable on https://github.com/jkubis96/JBioSeqTools
+        If you have any problem, don't hesitate to contact us!
+        
+    Args
+        show_plot (bool) - if True the plot will be displayed, if False only the graph will be returned to the project. Default: True
+
+    
+    Returns:
+        dict: Dictionary including all vector data (graphs, sequences, fasta) created based on user definition
+       
 
 
 <br />
@@ -750,49 +1143,49 @@ Example return:
 ```
 # test_expression_ssAAV_expression_8780nc
 
->5`ITR_start:1_stop:130_length:130 visible=True
+>5`ITR
 CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
->backbone_element_start:131_stop:157_length:27 visible=False
+>backbone_element
 TCTAGACAACTTTGTATAGAAAAGTTG
->Promoter : TBG_start:158_stop:617_length:460 visible=True
+>Promoter : TBG
 GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
->backbone_element_start:618_stop:641_length:24 visible=False
+>backbone_element
 CAAGTTTGTACAAAAAAGCAGGCT
->Kozak_sequence_start:642_stop:647_length:6 visible=True
+>Kozak_sequence
 GCCACC
->SEQ1 : SMN1_start:648_stop:1532_length:885 visible=True
+>SEQ1 : SMN1
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTG
->Linker_1 : T2A_start:1533_stop:1595_length:63 visible=True
+>Linker_1 : T2A
 GGAAGCGGAGAGGGCAGGGGAAGTCTTCTAACATGCGGGGACGTGGAGGAAAATCCCGGCCCC
->SEQ2 : SMN2_start:1596_stop:2483_length:888 visible=True
+>SEQ2 : SMN2
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTGTGA
->PolyA_signal : SV40_late_start:2484_stop:2705_length:222 visible=True
+>PolyA_signal : SV40_late
 CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
->2nd_promoter : CAG_start:2706_stop:4438_length:1733 visible=True
+>2nd_promoter : CAG
 CTCGACATTGATTATTGACTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCGCCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTGCCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTCGAGGTGAGCCCCACGTTCTGCTTCACTCTCCCCATCTCCCCCCCCTCCCCACCCCCAATTTTGTATTTATTTATTTTTTAATTATTTTGTGCAGCGATGGGGGCGGGGGGGGGGGGGGGGCGCGCGCCAGGCGGGGCGGGGCGGGGCGAGGGGCGGGGCGGGGCGAGGCGGAGAGGTGCGGCGGCAGCCAATCAGAGCGGCGCGCTCCGAAAGTTTCCTTTTATGGCGAGGCGGCGGCGGCGGCGGCCCTATAAAAAGCGAAGCGCGCGGCGGGCGGGAGTCGCTGCGCGCTGCCTTCGCCCCGTGCCCCGCTCCGCCGCCGCCTCGCGCCGCCCGCCCCGGCTCTGACTGACCGCGTTACTCCCACAGGTGAGCGGGCGGGACGGCCCTTCTCCTCCGGGCTGTAATTAGCGCTTGGTTTAATGACGGCTTGTTTCTTTTCTGTGGCTGCGTGAAAGCCTTGAGGGGCTCCGGGAGGGCCCTTTGTGCGGGGGGAGCGGCTCGGGGGGTGCGTGCGTGTGTGTGTGCGTGGGGAGCGCCGCGTGCGGCTCCGCGCTGCCCGGCGGCTGTGAGCGCTGCGGGCGCGGCGCGGGGCTTTGTGCGCTCCGCAGTGTGCGCGAGGGGAGCGCGGCCGGGGGCGGTGCCCCGCGGTGCGGGGGGGGCTGCGAGGGGAACAAAGGCTGCGTGCGGGGTGTGTGCGTGGGGGGGTGAGCAGGGGGTGTGGGCGCGTCGGTCGGGCTGCAACCCCCCCTGCACCCCCCTCCCCGAGTTGCTGAGCACGGCCCGGCTTCGGGTGCGGGGCTCCGTACGGGGCGTGGCGCGGGGCTCGCCGTGCCGGGCGGGGGGTGGCGGCAGGTGGGGGTGCCGGGCGGGGCGGGGCCGCCTCGGGCCGGGGAGGGCTCGGGGGAGGGGCGCGGCGGCCCCCGGAGCGCCGGCGGCTGTCGAGGCGCGGCGAGCCGCAGCCATTGCCTTTTATGGTAATCGTGCGAGAGGGCGCAGGGACTTCCTTTGTCCCAAATCTGTGCGGAGCCGAAATCTGGGAGGCGCCGCCGCACCCCCTCTAGCGGGCGCGGGGCGAAGCGGTGCGGCGCCGGCAGGAAGGAAATGGGCGGGGAGGGCCTTCGTGCGTCGCCGCGCCGCCGTCCCCTTCTCCCTCTCCAGCCTCGGGGCTGTCCGCGGGGGGACGGCTGCCTTCGGGGGGGACGGGGCAGGGCGGGGTTCGGCTTCTGGCGTGTGACCGGCGGCTCTAGAGCCTCTGCTAACCATGTTCATGCCTTCTTCTTTTTCCTACAGCTCCTGGGCAACGTGCTGGTTATTGTGCTGTCTCATCATTTTGGCAAAGAATTG
->Fluorescent_tag : EGFP_start:4439_stop:5158_length:720 visible=True
+>Fluorescent_tag : EGFP
 ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCCTGACCTACGGCGTGCAGTGCTTCAGCCGCTACCCCGACCACATGAAGCAGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCCATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCACCCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAA
->backbone_element_start:5159_stop:5188_length:30 visible=False
+>backbone_element
 ACCCAGCTTTCTTGTACAAAGTGGGAATTC
->Enhancer : WPRE_start:5189_stop:5786_length:598 visible=True
+>Enhancer : WPRE
 CGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAGCTGACGTCCTTTCCATGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGG
->backbone_element_start:5787_stop:5816_length:30 visible=False
+>backbone_element
 GAATTCCTAGAGCTCGCTGATCAGCCTCGA
->2nd_polyA_signal : bGH_start:5817_stop:6024_length:208 visible=True
+>2nd_polyA_signal : bGH
 CTGTGCCTTCTAGTTGCCAGCCATCTGTTGTTTGCCCCTCCCCCGTGCCTTCCTTGACCCTGGAAGGTGCCACTCCCACTGTCCTTTCCTAATAAAATGAGGAAATTGCATCGCATTGTCTGAGTAGGTGTCATTCTATTCTGGGGGGTGGGGTGGGGCAGGACAGCAAGGGGGAGGATTGGGAAGAGAATAGCAGGCATGCTGGGGA
->backbone_element_start:6025_stop:6031_length:7 visible=False
+>backbone_element
 GGGCCGC
->3`ITR_start:6032_stop:6161_length:130 visible=True
+>3`ITR
 CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
->backbone_element_start:6162_stop:7088_length:927 visible=False
+>backbone_element
 CTGCCTGCAGGGGCGCCTGATGCGGTATTTTCTCCTTACGCATCTGTGCGGTATTTCACACCGCATACGTCAAAGCAACCATAGTACGCGCCCTGTAGCGGCGCATTAAGCGCGGCGGGGGTGGTGGTTACGCGCAGCGTGACCGCTACACTTGCCAGCGCCTTAGCGCCCGCTCCTTTCGCTTTCTTCCCTTCCTTTCTCGCCACGTTCGCCGGCTTTCCCCGTCAAGCTCTAAATCGGGGGCTCCCTTTAGGGTTCCGATTTAGTGCTTTACGGCACCTCGACCCCAAAAAACTTGATTTGGGTGATGGTTCACGTAGTGGGCCATCGCCCTGATAGACGGTTTTTCGCCCTTTGACGTTGGAGTCCACGTTCTTTAATAGTGGACTCTTGTTCCAAACTGGAACAACACTCAACTCTATCTCGGGCTATTCTTTTGATTTATAAGGGATTTTGCCGATTTCGGTCTATTGGTTAAAAAATGAGCTGATTTAACAAAAATTTAACGCGAATTTTAACAAAATATTAACGTTTACAATTTTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGCCCCGACACCCGCCAACACCCGCTGACGCGCCCTGACGGGCTTGTCTGCTCCCGGCATCCGCTTACAGACAAGCTGTGACCGTCTCCGGGAGCTGCATGTGTCAGAGGTTTTCACCGTCATCACCGAAACGCGCGAGACGAAAGGGCCTCGTGATACGCCTATTTTTATAGGTTAATGTCATGATAATAATGGTTTCTTAGACGTCAGGTGGCACTTTTCGGGGAAATGTGCGCGGAACCCCTATTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGT
->Resistance : Ampicillin_start:7089_stop:7949_length:861 visible=True
+>Resistance : Ampicillin
 ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA
->backbone_element_start:7950_stop:8119_length:170 visible=False
+>backbone_element
 CTGTCAGACCAAGTTTACTCATATATACTTTAGATTGATTTAAAACTTCATTTTTAATTTAAAAGGATCTAGGTGAAGATCCTTTTTGATAATCTCATGACCAAAATCCCTTAACGTGAGTTTTCGTTCCACTGAGCGTCAGACCCCGTAGAAAAGATCAAAGGATCTTC
->pUC_ori_start:8120_stop:8708_length:589 visible=True
+>pUC_ori
 TTGAGATCCTTTTTTTCTGCGCGTAATCTGCTGCTTGCAAACAAAAAAACCACCGCTACCAGCGGTGGTTTGTTTGCCGGATCAAGAGCTACCAACTCTTTTTCCGAAGGTAACTGGCTTCAGCAGAGCGCAGATACCAAATACTGTTCTTCTAGTGTAGCCGTAGTTAGGCCACCACTTCAAGAACTCTGTAGCACCGCCTACATACCTCGCTCTGCTAATCCTGTTACCAGTGGCTGCTGCCAGTGGCGATAAGTCGTGTCTTACCGGGTTGGACTCAAGACGATAGTTACCGGATAAGGCGCAGCGGTCGGGCTGAACGGGGGGTTCGTGCACACAGCCCAGCTTGGAGCGAACGACCTACACCGAACTGAGATACCTACAGCGTGAGCTATGAGAAAGCGCCACGCTTCCCGAAGGGAGAAAGGCGGACAGGTATCCGGTAAGCGGCAGGGTCGGAACAGGAGAGCGCACGAGGGAGCTTCCAGGGGGAAACGCCTGGTATCTTTATAGTCCTGTCGGGTTTCGCCACCTCTGACTTGAGCGTCGATTTTTGTGATGCTCGTCAGGGGGGCGGAGCCTATGGAAA
->backbone_element_start:8709_stop:8780_length:72 visible=False
+>backbone_element
 AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTCCTGCAGGCAG
 ```
 
@@ -1067,49 +1460,49 @@ Example return:
 ```
 # test_RNAi_ssAAV_rnai_6790nc
 
->5`ITR_start:1_stop:130_length:130 visible=True
+>5`ITR
 CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
->backbone_element_start:131_stop:136_length:6 visible=False
+>backbone_element
 ATCGAT
->Promoter_ncRNA : U6_start:137_stop:385_length:249 visible=True
+>Promoter_ncRNA : U6
 GAGGGCCTATTTCCCATGATTCCTTCATATTTGCATATACGATACAAGGCTGTTAGAGAGATAATTGGAATTAATTTGACTGTAAACACAAAGATATTAGTACAAAATACGTGACGTAGAAAGTAATAATTTCTTGGGTAGTTTGCAGTTTTAAAATTATGTTTTAAAATGGACTATCATATGCTTACCGTAACTTGAAAGTATTTCGATTTCTTGGCTTTATATATCTTGTGGAAAGGACGAAACACC
->backbone_element_start:386_stop:387_length:2 visible=False
+>backbone_element
 GG
->RNAi : PAX3_RNAi_35_hs_start:388_stop:455_length:68 visible=True
+>RNAi : PAX3_RNAi_35_hs
 GCCTTTCCGTTTCGCCTTCACCTTAGTGAAGCCACAGATGTACAGGTGAAGGCGAAACGGAAAGGCTT
->Terminator_start:456_stop:460_length:5 visible=True
+>Terminator
 TTTTT
->backbone_element_start:461_stop:487_length:27 visible=False
+>backbone_element
 GAATTCCAACTTTGTATAGAAAAGTTG
->Promoter : TBG_start:488_stop:947_length:460 visible=True
+>Promoter : TBG
 GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
->backbone_element_start:948_stop:977_length:30 visible=False
+>backbone_element
 CAAGTTTGTACAAAAAAGCAGGCTGCCACC
->SEQ1 : SMN1_start:978_stop:1862_length:885 visible=True
+>SEQ1 : SMN1
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTG
->Fluorescent_tag_linker : T2A_start:1863_stop:1925_length:63 visible=True
+>Fluorescent_tag_linker : T2A
 GGAAGCGGAGAGGGCAGGGGAAGTCTTCTAACATGCGGGGACGTGGAGGAAAATCCCGGCCCC
->Fluorescent_tag : EGFP_start:1926_stop:2645_length:720 visible=True
+>Fluorescent_tag : EGFP
 ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCCTGACCTACGGCGTGCAGTGCTTCAGCCGCTACCCCGACCACATGAAGCAGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCCATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCACCCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAA
->Enhancer : WPRE_start:2646_stop:3243_length:598 visible=True
+>Enhancer : WPRE
 CGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAGCTGACGTCCTTTCCATGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGG
 >backbone_element_start:3244_stop:3287_length:44 visible=False
 ACCCAGCTTTCTTGTACAAAGTGGTGATGGCCGGCCGCTTCGAG
->PolyA_signal : SV40_late_start:3288_stop:3509_length:222 visible=True
+>PolyA_signal : SV40_late
 CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
->backbone_element_start:3510_stop:3521_length:12 visible=False
+>backbone_element
 ATCGATAGATCT
->3`ITR_start:3522_stop:3651_length:130 visible=True
+>3`ITR
 AGGAACCCCTAGTGATGGAGTTGGCCACTCCCTCTCTGCGCGCTCGCTCGCTCACTGAGGCCGGGCGACCAAAGGTCGCCCGACGCCCGGGCTTTGCCCGGGCGGCCTCAGTGAGCGAGCGAGCGCGCAG
->backbone_element_start:3652_stop:4742_length:1091 visible=False
+>backbone_element
 CTGCCTGCAGGCAGCTTGGCACTGGCCGTCGTTTTACAACGTCGTGACTGGGAAAACCCTGGCGTTACCCAACTTAATCGCCTTGCAGCACATCCCCCTTTCGCCAGCTGGCGTAATAGCGAAGAGGCCCGCACCGATCGCCCTTCCCAACAGTTGCGCAGCCTGAATGGCGAATGGCGCCTGATGCGGTATTTTCTCCTTACGCATCTGTGCGGTATTTCACACCGCATACGTCAAAGCAACCATAGTACGCGCCCTGTAGCGGCGCATTAAGCGCGGCGGGTGTGGTGGTTACGCGCAGCGTGACCGCTACACTTGCCAGCGCCCTAGCGCCCGCTCCTTTCGCTTTCTTCCCTTCCTTTCTCGCCACGTTCGCCGGCTTTCCCCGTCAAGCTCTAAATCGGGGGCTCCCTTTAGGGTTCCGATTTAGTGCTTTACGGCACCTCGACCCCAAAAAACTTGATTTGGGTGATGGTTCACGTAGTGGGCCATCGCCCTGATAGACGGTTTTTCGCCCTTTGACGTTGGAGTCCACGTTCTTTAATAGTGGACTCTTGTTCCAAACTGGAACAACACTCAACCCTATCTCGGGCTATTCTTTTGATTTATAAGGGATTTTGCCGATTTCGGCCTATTGGTTAAAAAATGAGCTGATTTAACAAAAATTTAACGCGAATTTTAACAAAATATTAACGTTTACAATTTTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGCCCCGACACCCGCCAACACCCGCTGACGCGCCCTGACGGGCTTGTCTGCTCCCGGCATCCGCTTACAGACAAGCTGTGACCGTCTCCGGGAGCTGCATGTGTCAGAGGTTTTCACCGTCATCACCGAAACGCGCGAGACGAAAGGGCCTCGTGATACGCCTATTTTTATAGGTTAATGTCATGATAATAATGGTTTCTTAGACGTCAGGTGGCACTTTTCGGGGAAATGTGCGCGGAACCCCTATTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGT
->Resistance : Ampicillin_start:4743_stop:5603_length:861 visible=True
+>Resistance : Ampicillin
 ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA
->backbone_element_start:5604_stop:5773_length:170 visible=False
+>backbone_element
 CTGTCAGACCAAGTTTACTCATATATACTTTAGATTGATTTAAAACTTCATTTTTAATTTAAAAGGATCTAGGTGAAGATCCTTTTTGATAATCTCATGACCAAAATCCCTTAACGTGAGTTTTCGTTCCACTGAGCGTCAGACCCCGTAGAAAAGATCAAAGGATCTTC
->pUC_ori_start:5774_stop:6362_length:589 visible=True
+>pUC_ori
 TTGAGATCCTTTTTTTCTGCGCGTAATCTGCTGCTTGCAAACAAAAAAACCACCGCTACCAGCGGTGGTTTGTTTGCCGGATCAAGAGCTACCAACTCTTTTTCCGAAGGTAACTGGCTTCAGCAGAGCGCAGATACCAAATACTGTTCTTCTAGTGTAGCCGTAGTTAGGCCACCACTTCAAGAACTCTGTAGCACCGCCTACATACCTCGCTCTGCTAATCCTGTTACCAGTGGCTGCTGCCAGTGGCGATAAGTCGTGTCTTACCGGGTTGGACTCAAGACGATAGTTACCGGATAAGGCGCAGCGGTCGGGCTGAACGGGGGGTTCGTGCACACAGCCCAGCTTGGAGCGAACGACCTACACCGAACTGAGATACCTACAGCGTGAGCTATGAGAAAGCGCCACGCTTCCCGAAGGGAGAAAGGCGGACAGGTATCCGGTAAGCGGCAGGGTCGGAACAGGAGAGCGCACGAGGGAGCTTCCAGGGGGAAACGCCTGGTATCTTTATAGTCCTGTCGGGTTTCGCCACCTCTGACTTGAGCGTCGATTTTTGTGATGCTCGTCAGGGGGGCGGAGCCTATGGAAA
->backbone_element_start:6363_stop:6790_length:428 visible=False
+>backbone_element
 AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTTCTTTCCTGCGTTATCCCCTGATTCTGTGGATAACCGTATTACCGCCTTTGAGTGAGCTGATACCGCTCGCCGCAGCCGAACGACCGAGCGCAGCGAGTCAGTGAGCGAGGAAGCGGAAGAGCGCCCAATACGCAAACCGCCTCTCCCCGCGCGTTGGCCGATTCATTAATGCAGCTGGCACGACAGGTTTCCCGACTGGAAAGCGGGCAGTGAGCGCAACGCAATTAATGTGAGTTAGCTCACTCATTAGGCACCCCAGGCTTTACACTTTATGCTTCCGGCTCGTATGTTGTGTGGAATTGTGAGCGGATAACAATTTCACACAGGAAACAGCTATGACCATGATTACGAATTGCCTGCAGGCAG
 ```
 
@@ -1353,35 +1746,35 @@ Example return:
 ```
 #test_invitro_transcription_mRNA_Regular_plasmid_mrna_3676nc
 
->T7_start:1_stop:19_length:19 visible=True
+>T7
 TAATACGACTCACTATAGG
->5`UTR : SMN1_start:20_stop:479_length:460 visible=True
+>5`UTR : SMN1
 GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
->Kozak_sequence_start:480_stop:485_length:6 visible=True
+>Kozak_sequence
 GCCACC
->SEQ1 : SMN1_start:486_stop:1373_length:888 visible=True
+>SEQ1 : SMN1
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTGTGA
->3`UTR : KIT_start:1374_stop:1595_length:222 visible=True
+>3`UTR : KIT
 CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
->PolyA_tail : x 50_start:1596_stop:1645_length:50 visible=True
+>PolyA_tail : x 50
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
->backbone_element_start:1646_stop:1646_length:1 visible=False
+>backbone_element
 T
->SapI_start:1647_stop:1653_length:7 visible=True
+>SapI
 GAAGAGC
->BsiWI_start:1654_stop:1659_length:6 visible=True
+>BsiWI
 CGTACG
->AscI_start:1660_stop:1667_length:8 visible=True
+>AscI
 GGCGCGCC
->backbone_element_start:1668_stop:1856_length:189 visible=False
+>backbone_element
 TAGGCGCGATTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTT
->pUC_ori_start:1857_stop:2445_length:589 visible=True
+>pUC_ori
 TTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGAACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAA
 >backbone_element_start:2446_stop:2615_length:170 visible=False
 GAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAG
->Resistance : Ampicillin_start:2616_stop:3476_length:861 visible=True
+>Resistance : Ampicillin
 AATGGTTACGAATTAGTCACTCCGTGGATAGAGTCGCTAGACAGATAAAGCAAGTAGGTATCAACGGACTGAGGGGCAGCACATCTATTGATGCTATGCCCTCCCGAATGGTAGACCGGGGTCACGACGTTACTATGGCGCCGAAGGTGCGAGTGGCCGAGGTCTAAATAGTCGTTATTTGGTCGGTCGGCCTTCCCGGCTCGCGTCTTCACCAGGACGTTGAAATAGGCGGAGGTAGGTCAGATAATTAACAACGGCCCTTCGATCTCATTCATCAAGCGGTCAATTATCAAACGCGTTGCAACAACGGTAACGATGTCCGTAGCACCACAGTGCGAGCAGCAAACCATACCGAAGTAAGTCGAGGCCAAGGGTTGCTAGTTCCGCTCAATGTACTAGGGGGTACAACACGTTTTTTCGCCAATCGAGGAAGCCAGGAGGCTAGCAACAGTCTTCATTCAACCGGCGTCACAATAGTGAGTACCAATACCGTCGTGACGTATTAAGAGAATGACAGTACGGTAGGCATTCTACGAAAAGACACTGACCACTCATGAGTTGGTTCAGTAAGACTCTTATCACATACGCCGCTGGCTCAACGAGAACGGGCCGCAGTTATGCCCTATTATGGCGCGGTGTATCGTCTTGAAATTTTCACGAGTAGTAACCTTTTGCAAGAAGCCCCGCTTTTGAGAGTTCCTAGAATGGCGACAACTCTAGGTCAAGCTACATTGGGTGAGCACGTGGGTTGACTAGAAGTCGTAGAAAATGAAAGTGGTCGCAAAGACCCACTCGTTTTTGTCCTTCCGTTTTACGGCGTTTTTTCCCTTATTCCCGCTGTGCCTTTACAACTTATGAGTA
->backbone_element_start:3477_stop:3676_length:200 visible=False
+>backbone_element
 ACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTC
 ```
 
@@ -1540,35 +1933,35 @@ Example return:
 ```
 #test_invitro_transcription_mRNA_Regular_plasmid_mrna_3676nc
 
->T7_start:1_stop:19_length:19 visible=True
+>T7
 TAATACGACTCACTATAGG
->5`UTR : SMN1_start:20_stop:479_length:460 visible=True
+>5`UTR : SMN1
 GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
->Kozak_sequence_start:480_stop:485_length:6 visible=True
+>Kozak_sequence
 GCCACC
->SEQ1 : SMN1_start:486_stop:1373_length:888 visible=True
+>SEQ1 : SMN1
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTGTGA
->3`UTR : KIT_start:1374_stop:1595_length:222 visible=True
+>3`UTR : KIT
 CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
->PolyA_tail : x 50_start:1596_stop:1645_length:50 visible=True
+>PolyA_tail : x 50
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
->backbone_element_start:1646_stop:1646_length:1 visible=False
+>backbone_element
 T
->SapI_start:1647_stop:1653_length:7 visible=True
+>SapI
 GAAGAGC
->BsiWI_start:1654_stop:1659_length:6 visible=True
+>BsiWI
 CGTACG
->AscI_start:1660_stop:1667_length:8 visible=True
+>AscI
 GGCGCGCC
->backbone_element_start:1668_stop:1856_length:189 visible=False
+>backbone_element
 TAGGCGCGATTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTT
->pUC_ori_start:1857_stop:2445_length:589 visible=True
+>pUC_ori
 TTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGAACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAA
->backbone_element_start:2446_stop:2615_length:170 visible=False
+>backbone_element
 GAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAG
->Resistance : Ampicillin_start:2616_stop:3476_length:861 visible=True
+>Resistance : Ampicillin
 AATGGTTACGAATTAGTCACTCCGTGGATAGAGTCGCTAGACAGATAAAGCAAGTAGGTATCAACGGACTGAGGGGCAGCACATCTATTGATGCTATGCCCTCCCGAATGGTAGACCGGGGTCACGACGTTACTATGGCGCCGAAGGTGCGAGTGGCCGAGGTCTAAATAGTCGTTATTTGGTCGGTCGGCCTTCCCGGCTCGCGTCTTCACCAGGACGTTGAAATAGGCGGAGGTAGGTCAGATAATTAACAACGGCCCTTCGATCTCATTCATCAAGCGGTCAATTATCAAACGCGTTGCAACAACGGTAACGATGTCCGTAGCACCACAGTGCGAGCAGCAAACCATACCGAAGTAAGTCGAGGCCAAGGGTTGCTAGTTCCGCTCAATGTACTAGGGGGTACAACACGTTTTTTCGCCAATCGAGGAAGCCAGGAGGCTAGCAACAGTCTTCATTCAACCGGCGTCACAATAGTGAGTACCAATACCGTCGTGACGTATTAAGAGAATGACAGTACGGTAGGCATTCTACGAAAAGACACTGACCACTCATGAGTTGGTTCAGTAAGACTCTTATCACATACGCCGCTGGCTCAACGAGAACGGGCCGCAGTTATGCCCTATTATGGCGCGGTGTATCGTCTTGAAATTTTCACGAGTAGTAACCTTTTGCAAGAAGCCCCGCTTTTGAGAGTTCCTAGAATGGCGACAACTCTAGGTCAAGCTACATTGGGTGAGCACGTGGGTTGACTAGAAGTCGTAGAAAATGAAAGTGGTCGCAAAGACCCACTCGTTTTTGTCCTTCCGTTTTACGGCGTTTTTTCCCTTATTCCCGCTGTGCCTTTACAACTTATGAGTA
->backbone_element_start:3477_stop:3676_length:200 visible=False
+>backbone_element
 ACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTC
 ```
 
@@ -1621,22 +2014,18 @@ pd.DataFrame(project['rnai']['full_data'])
 
 ```
 
-	>name1_start:1_stop:130_length:130 visible=True
+	>name1
 	CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
         
-	>name2_start:131_stop:157_length:27 visible=False
+	>name2
 	TCTAGACAACTTTGTATAGAAAAGTTG
         
-	>name3_start:158_stop:617_length:460 visible=True
+	>name3
 	GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
         
 	Header explanation:
 		name1,2,3,... - the name of the sequence element
-		start - beginning of the sequence in the plasmid vector
-		stop - end of the sequence in the plasmid vector
-		length - the length of the sequence
-		visible - True or False, if the element ought to be displayed and signed or not on the graph
-
+		
 ```
 
 * FASTA file can be prepared in any text editor without any additional tools. The user must only remember that the file extension should be *.fasta!
@@ -1652,6 +2041,17 @@ pd.DataFrame(project['rnai']['full_data'])
 fasta_string = vb.load_fasta(path)
 ```
 
+    
+    This function finds and removes restriction places inside the sequence.    
+    
+    Args:
+       path (str) - path to the FASTA file *.FASTA
+       
+
+    Returns:
+        str: Loaded FASTA file to the string object
+       
+
 <br />
 
 #### 2.3.2 Converting the FASTA string to the data frame <a id="fasta-df"></a>
@@ -1660,13 +2060,50 @@ fasta_string = vb.load_fasta(path)
 df_fasta = vb.decode_fasta_to_dataframe(fasta_string)
 ```
 
+    This function decodes the FASTA file from the string to the data frame   
+    
+    
+    Args:
+       fasta_file (str) - FASTA file (string) loaded by load_fasta() from external source
+
+    Returns:
+        DataFrame: Data frame containing in separate columns FASTA headers and sequences
+       
+
 <br />
 
-#### 2.3.3 Decoding information form headers for the vector graph creating <a id="headers"></a>
+#### 2.3.3 Decoding FASTA information <a id="headers"></a>
 
 ```
-df_fasta = vb.extract_header_info(df_fasta)
+df_fasta = vb.extract_fasta_info(df_fasta)
 ```
+
+    This function extracts the necessary information from headers for vector plotting using plot_vector()
+    
+    For decoding headers the FASTA structure should be:
+            
+        >name1
+        CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
+        
+        >name2
+        TCTAGACAACTTTGTATAGAAAAGTTG
+        
+        >name3
+        GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
+        
+        Header explanation:
+            name1,2,3,... - the name of the sequence element
+
+    
+    Args:
+       df_fasta (DataFrame) - FASTA data frame obtained from decode_fasta_to_dataframe()
+       ommit_pattern (str) - string pattern. Any header containing this pattern will be marked as 
+                             False for visibility, meaning that the corresponding part of the plasmid 
+                             vector sequence will not be displayed.
+       
+
+    Returns:
+        DataFrame: Data frame with additional columns of decoded headers for plot_vector() function 
 
 <br />
 
@@ -1675,6 +2112,36 @@ df_fasta = vb.extract_header_info(df_fasta)
 ```
 graph = vb.plot_vector(df_fasta, title = None, title_size = 20, show_plot = True)
 ```
+
+
+    This function displays a plot of the vector plasmid provided in the DataFrame of the FASTA file derived from load_fasta(path) -> decode_fasta_to_dataframe(fasta) -> extract_fasta_info(df_fasta) pipeline.
+    
+    
+    Args:
+        df_fasta (DataFrame) - dataframe obtained from load_fasta(path) -> decode fasta to_dataframe(fasta) -> extract_fasta_info(df_fasta) pipeline which prepare decoded FASTA file of vector plasmid.           
+            *dedicated FASTA structure:
+                
+        >name1
+        CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
+        
+        >name2
+        TCTAGACAACTTTGTATAGAAAAGTTG
+        
+        >name3
+        GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
+        
+        Header explanation:
+            name1,2,3,... - the name of the sequence element
+           
+
+       title (str | None) - a title that will display in the middle of the plasmid vector. Default: None
+       title_size (int | float) - font size of the title. Default: 20
+       show_plot (bool) - if True the plot will be displayed, if False only the graph will be returned to the variable. Default: True
+     
+
+    Returns:
+        Graph: The vector plot based on the provided DataFrame FASTA data
+       
 
 <br />
 
@@ -1691,6 +2158,9 @@ from jbst import vector_build as vb
 fasta_string = vb.load_fasta(pkg_resources.resource_filename("jbst", "tests/fasta_vector_test.fasta"))
 
 ```
+
+   
+
 <br />
 
 Example FASTA file content:
@@ -1698,47 +2168,47 @@ Example FASTA file content:
 ```
 # test_expression_ssAAV_expression_8717nc
 
->5`ITR_start:1_stop:130_length:130 visible=True
+>5`ITR
 CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
 >backbone_element_start:131_stop:157_length:27 visible=False
 TCTAGACAACTTTGTATAGAAAAGTTG
->Promoter:TBG_start:158_stop:617_length:460 visible=True
+>Promoter:TBG
 GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
->backbone_element_start:618_stop:641_length:24 visible=False
+>backbone_element
 CAAGTTTGTACAAAAAAGCAGGCT
->Kozak_sequence_start:642_stop:647_length:6 visible=True
+>Kozak_sequence
 GCCACC
->SEQ1:SMN1_start:648_stop:1532_length:885 visible=True
+>SEQ1:SMN1
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTG
->SEQ2:SMN2_start:1533_stop:2420_length:888 visible=True
+>SEQ2:SMN2
 ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTGTGA
->PolyA_signal:SV40_late_start:2421_stop:2642_length:222 visible=True
+>PolyA_signal:SV40_late
 CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
->2nd_promoter:CAG_start:2643_stop:4375_length:1733 visible=True
+>2nd_promoter:CAG
 CTCGACATTGATTATTGACTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCGCCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTGCCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTCGAGGTGAGCCCCACGTTCTGCTTCACTCTCCCCATCTCCCCCCCCTCCCCACCCCCAATTTTGTATTTATTTATTTTTTAATTATTTTGTGCAGCGATGGGGGCGGGGGGGGGGGGGGGGCGCGCGCCAGGCGGGGCGGGGCGGGGCGAGGGGCGGGGCGGGGCGAGGCGGAGAGGTGCGGCGGCAGCCAATCAGAGCGGCGCGCTCCGAAAGTTTCCTTTTATGGCGAGGCGGCGGCGGCGGCGGCCCTATAAAAAGCGAAGCGCGCGGCGGGCGGGAGTCGCTGCGCGCTGCCTTCGCCCCGTGCCCCGCTCCGCCGCCGCCTCGCGCCGCCCGCCCCGGCTCTGACTGACCGCGTTACTCCCACAGGTGAGCGGGCGGGACGGCCCTTCTCCTCCGGGCTGTAATTAGCGCTTGGTTTAATGACGGCTTGTTTCTTTTCTGTGGCTGCGTGAAAGCCTTGAGGGGCTCCGGGAGGGCCCTTTGTGCGGGGGGAGCGGCTCGGGGGGTGCGTGCGTGTGTGTGTGCGTGGGGAGCGCCGCGTGCGGCTCCGCGCTGCCCGGCGGCTGTGAGCGCTGCGGGCGCGGCGCGGGGCTTTGTGCGCTCCGCAGTGTGCGCGAGGGGAGCGCGGCCGGGGGCGGTGCCCCGCGGTGCGGGGGGGGCTGCGAGGGGAACAAAGGCTGCGTGCGGGGTGTGTGCGTGGGGGGGTGAGCAGGGGGTGTGGGCGCGTCGGTCGGGCTGCAACCCCCCCTGCACCCCCCTCCCCGAGTTGCTGAGCACGGCCCGGCTTCGGGTGCGGGGCTCCGTACGGGGCGTGGCGCGGGGCTCGCCGTGCCGGGCGGGGGGTGGCGGCAGGTGGGGGTGCCGGGCGGGGCGGGGCCGCCTCGGGCCGGGGAGGGCTCGGGGGAGGGGCGCGGCGGCCCCCGGAGCGCCGGCGGCTGTCGAGGCGCGGCGAGCCGCAGCCATTGCCTTTTATGGTAATCGTGCGAGAGGGCGCAGGGACTTCCTTTGTCCCAAATCTGTGCGGAGCCGAAATCTGGGAGGCGCCGCCGCACCCCCTCTAGCGGGCGCGGGGCGAAGCGGTGCGGCGCCGGCAGGAAGGAAATGGGCGGGGAGGGCCTTCGTGCGTCGCCGCGCCGCCGTCCCCTTCTCCCTCTCCAGCCTCGGGGCTGTCCGCGGGGGGACGGCTGCCTTCGGGGGGGACGGGGCAGGGCGGGGTTCGGCTTCTGGCGTGTGACCGGCGGCTCTAGAGCCTCTGCTAACCATGTTCATGCCTTCTTCTTTTTCCTACAGCTCCTGGGCAACGTGCTGGTTATTGTGCTGTCTCATCATTTTGGCAAAGAATTG
->Fluorescent_tag:EGFP_start:4376_stop:5095_length:720 visible=True
+>Fluorescent_tag:EGFP
 ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCCTGACCTACGGCGTGCAGTGCTTCAGCCGCTACCCCGACCACATGAAGCAGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCCATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCACCCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAA
->backbone_element_start:5096_stop:5125_length:30 visible=False
+>backbone_element
 ACCCAGCTTTCTTGTACAAAGTGGGAATTC
->Enhancer:WPRE_start:5126_stop:5723_length:598 visible=True
+>Enhancer:WPRE
 CGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAGCTGACGTCCTTTCCATGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGG
->backbone_element_start:5724_stop:5753_length:30 visible=False
+>backbone_element
 GAATTCCTAGAGCTCGCTGATCAGCCTCGA
->2nd_polyA_signal:bGH_start:5754_stop:5961_length:208 visible=True
+>2nd_polyA_signal:bGH
 CTGTGCCTTCTAGTTGCCAGCCATCTGTTGTTTGCCCCTCCCCCGTGCCTTCCTTGACCCTGGAAGGTGCCACTCCCACTGTCCTTTCCTAATAAAATGAGGAAATTGCATCGCATTGTCTGAGTAGGTGTCATTCTATTCTGGGGGGTGGGGTGGGGCAGGACAGCAAGGGGGAGGATTGGGAAGAGAATAGCAGGCATGCTGGGGA
->backbone_element_start:5962_stop:5968_length:7 visible=False
+>backbone_element
 GGGCCGC
->3`ITR_start:5969_stop:6098_length:130 visible=True
+>3`ITR_start
 CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
->backbone_element_start:6099_stop:7025_length:927 visible=False
+>backbone_element
 CTGCCTGCAGGGGCGCCTGATGCGGTATTTTCTCCTTACGCATCTGTGCGGTATTTCACACCGCATACGTCAAAGCAACCATAGTACGCGCCCTGTAGCGGCGCATTAAGCGCGGCGGGGGTGGTGGTTACGCGCAGCGTGACCGCTACACTTGCCAGCGCCTTAGCGCCCGCTCCTTTCGCTTTCTTCCCTTCCTTTCTCGCCACGTTCGCCGGCTTTCCCCGTCAAGCTCTAAATCGGGGGCTCCCTTTAGGGTTCCGATTTAGTGCTTTACGGCACCTCGACCCCAAAAAACTTGATTTGGGTGATGGTTCACGTAGTGGGCCATCGCCCTGATAGACGGTTTTTCGCCCTTTGACGTTGGAGTCCACGTTCTTTAATAGTGGACTCTTGTTCCAAACTGGAACAACACTCAACTCTATCTCGGGCTATTCTTTTGATTTATAAGGGATTTTGCCGATTTCGGTCTATTGGTTAAAAAATGAGCTGATTTAACAAAAATTTAACGCGAATTTTAACAAAATATTAACGTTTACAATTTTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGCCCCGACACCCGCCAACACCCGCTGACGCGCCCTGACGGGCTTGTCTGCTCCCGGCATCCGCTTACAGACAAGCTGTGACCGTCTCCGGGAGCTGCATGTGTCAGAGGTTTTCACCGTCATCACCGAAACGCGCGAGACGAAAGGGCCTCGTGATACGCCTATTTTTATAGGTTAATGTCATGATAATAATGGTTTCTTAGACGTCAGGTGGCACTTTTCGGGGAAATGTGCGCGGAACCCCTATTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGT
->Resistance:Ampicillin_start:7026_stop:7886_length:861 visible=True
+>Resistance:Ampicillin
 ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA
->backbone_element_start:7887_stop:8056_length:170 visible=False
+>backbone_element
 CTGTCAGACCAAGTTTACTCATATATACTTTAGATTGATTTAAAACTTCATTTTTAATTTAAAAGGATCTAGGTGAAGATCCTTTTTGATAATCTCATGACCAAAATCCCTTAACGTGAGTTTTCGTTCCACTGAGCGTCAGACCCCGTAGAAAAGATCAAAGGATCTTC
->pUC_ori_start:8057_stop:8645_length:589 visible=True
+>pUC_ori
 TTGAGATCCTTTTTTTCTGCGCGTAATCTGCTGCTTGCAAACAAAAAAACCACCGCTACCAGCGGTGGTTTGTTTGCCGGATCAAGAGCTACCAACTCTTTTTCCGAAGGTAACTGGCTTCAGCAGAGCGCAGATACCAAATACTGTTCTTCTAGTGTAGCCGTAGTTAGGCCACCACTTCAAGAACTCTGTAGCACCGCCTACATACCTCGCTCTGCTAATCCTGTTACCAGTGGCTGCTGCCAGTGGCGATAAGTCGTGTCTTACCGGGTTGGACTCAAGACGATAGTTACCGGATAAGGCGCAGCGGTCGGGCTGAACGGGGGGTTCGTGCACACAGCCCAGCTTGGAGCGAACGACCTACACCGAACTGAGATACCTACAGCGTGAGCTATGAGAAAGCGCCACGCTTCCCGAAGGGAGAAAGGCGGACAGGTATCCGGTAAGCGGCAGGGTCGGAACAGGAGAGCGCACGAGGGAGCTTCCAGGGGGAAACGCCTGGTATCTTTATAGTCCTGTCGGGTTTCGCCACCTCTGACTTGAGCGTCGATTTTTGTGATGCTCGTCAGGGGGGCGGAGCCTATGGAAA
->backbone_element_start:8646_stop:8717_length:72 visible=False
+>backbone_element
 AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTCCTGCAGGCAG
 
 ```
@@ -1749,7 +2219,7 @@ AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTCCTGCAGGCAG
 ```
 df_fasta = vb.decode_fasta_to_dataframe(fasta_string)
 
-df_fasta = vb.extract_header_info(df_fasta)
+df_fasta = vb.extract_fasta_info(df_fasta)
 
 graph = vb.plot_vector(df_fasta, title = None, title_size = 20, show_plot = True)
 
@@ -1765,6 +2235,363 @@ graph.savefig('example_graph.svg)
 
 <br />
 
+
+
+
+#### 2.3.5 Writing FASTA format of the plasmid vector <a id="wrfa"></a>
+
+```
+vb.write_fasta(fasta_string, path = None, name = 'fasta_file')
+```
+
+    
+    This function saves into FASTA *.fasta
+    
+    Args:
+        fasta_string (str/FASTA) - sequences provided in FASTA format from generate_fasta_string() or loaded from external sources
+        path (str | None) - the path to save. If None save it to the current working directory. Default: None
+        name (str) - the name of the saving file. Default: 'fasta_file'
+
+
+
+
+<br />
+
+
+
+
+#### 2.3.6 Converting FASTA format to GeneBank format <a id="cvfagb"></a>
+
+```
+gb_format = vb.get_genebank(df_fasta, 
+                     name = 'viral_vector', 
+                     definition = 'Synthetic viral plasmid vector')
+                     
+```
+
+    
+    Generate a GenBank (.gb) file based on a FASTA DataFrame.
+
+    This function takes a DataFrame containing parsed FASTA data from a plasmid vector
+    and converts it into a GenBank-formatted file. It is designed to work with 
+    outputs generated by the pipeline:
+    `load_fasta(path) -> decode_fasta_to_dataframe(fasta) -> extract_fasta_info(df_fasta)`.    
+    
+    Args:
+        df_fasta (DataFrame) - dataframe obtained from load_fasta(path) -> decode fasta_to_dataframe(fasta) -> extract_fasta_info(df_fasta) pipeline which prepare decoded FASTA file of vector plasmid.           
+            *dedicated FASTA structure:
+                
+        >name1
+        CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
+        
+        >name2
+        TCTAGACAACTTTGTATAGAAAAGTTG
+        
+        >name3
+        GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
+        
+        Header explanation:
+            name1,2,3,... - the name of the sequence element
+          
+
+       name (str) - name of the GenBank data. Default is 'viral_vector'.
+
+       definition (str) - description of the plasmid/vector for the GenBank `DEFINITION` field. 
+                          Default is 'Synthetic viral plasmid vector'.
+
+    Returns:
+        Str: The GeneBank text format based on the provided DataFrame FASTA data
+       
+
+
+<br />
+
+
+##### Full pipeline example:
+
+
+```
+# Exaple FASTA file is loaded from the library repository
+
+import pkg_resources
+from jbst import vector_build as vb
+
+fasta_string = vb.load_fasta(pkg_resources.resource_filename("jbst", "tests/fasta_vector_test.fasta"))
+
+```
+
+   
+
+<br />
+
+Example FASTA file content:
+
+```
+# test_expression_ssAAV_expression_8717nc
+
+>5`ITR
+CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
+>backbone_element_start:131_stop:157_length:27 visible=False
+TCTAGACAACTTTGTATAGAAAAGTTG
+>Promoter:TBG
+GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTACAGAACCTATTAGAAAGGATCACCCAGCCTCTGCTTTTGTACAACTTTCCCTTAAAAAACTGCCAATTCCACTGCTGTTTGGCCCAATAGTGAGAACTTTTTCCTGCTGCCTCTTGGTGCTTTTGCCTATGGCCCCTATTCTGCCTGCTGAAGACACTCTTGCCAGCATGGACTTAAACCCCTCCAGCTCTGACAATCCTCTTTCTCTTTTGTTTTACATGAAGGGTCTGGCAGCCAAAGCAATCACTCAAAGTTCAAACCTTATCATTTTTTGCTTTGTTCCTCTTGGCCTTGGTTTTGTACATCAGCTTTGAAAATACCATCCCAGGGTTAATGCTGGGGTTAATTTATAACTAAGAGTGCTCTAGTTTTGCAATACAGGACATGCTATAAAAATGGAAAGAT
+>backbone_element
+CAAGTTTGTACAAAAAAGCAGGCT
+>Kozak_sequence
+GCCACC
+>SEQ1:SMN1
+ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTG
+>SEQ2:SMN2
+ATGGCTATGTCTAGCGGAGGCTCTGGAGGAGGAGTTCCTGAACAGGAGGACTCTGTGCTGTTCCGGAGGGGCACAGGACAAAGCGATGACAGCGACATCTGGGACGACACAGCTCTGATTAAGGCCTACGACAAGGCCGTGGCCAGCTTCAAGCACGCCCTGAAGAACGGCGACATCTGCGAGACCAGCGGAAAGCCTAAAACCACCCCTAAGAGAAAGCCTGCTAAAAAGAACAAGAGCCAGAAGAAGAACACCGCTGCCAGCCTGCAGCAGTGGAAGGTGGGCGACAAGTGCAGCGCCATTTGGAGCGAGGACGGATGTATCTACCCTGCCACAATCGCCAGCATCGACTTCAAGCGGGAGACCTGCGTGGTGGTGTATACCGGCTACGGCAACAGGGAAGAGCAGAACCTGAGCGACCTGCTGAGCCCTATTTGCGAGGTGGCCAATAACATCGAGCAGAACGCCCAGGAGAACGAGAACGAGAGCCAGGTGAGCACCGACGAGAGCGAGAACAGCCGGAGCCCCGGCAATAAGAGCGACAACATCAAGCCCAAGAGCGCCCCCTGGAACTCTTTCCTGCCCCCCCCCCCCCCCATGCCTGGACCTAGATTGGGACCTGGAAAACCTGGACTGAAATTCAACGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCATTTGCTGTCTTGTTGGCTGCCCCCCTTCCCTTCTGGACCCCCCATTATCCCCCCCCCCCCCCCCATCTGTCCTGATTCTCTGGACGACGCCGATGCTTTGGGCTCTATGCTGATCTCTTGGTATATGAGCGGCTACCACACCGGCTACTACATGTTCCCCGAGGCCAGCCTGAAGGCCGAGCAGATGCCCGCTCCTTGTTTTCTGTGA
+>PolyA_signal:SV40_late
+CAGACATGATAAGATACATTGATGAGTTTGGACAAACCACAACTAGAATGCAGTGAAAAAAATGCTTTATTTGTGAAATTTGTGATGCTATTGCTTTATTTGTAACCATTATAAGCTGCAATAAACAAGTTAACAACAACAATTGCATTCATTTTATGTTTCAGGTTCAGGGGGAGGTGTGGGAGGTTTTTTAAAGCAAGTAAAACCTCTACAAATGTGGTA
+>2nd_promoter:CAG
+CTCGACATTGATTATTGACTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCGCCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTGCCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTCGAGGTGAGCCCCACGTTCTGCTTCACTCTCCCCATCTCCCCCCCCTCCCCACCCCCAATTTTGTATTTATTTATTTTTTAATTATTTTGTGCAGCGATGGGGGCGGGGGGGGGGGGGGGGCGCGCGCCAGGCGGGGCGGGGCGGGGCGAGGGGCGGGGCGGGGCGAGGCGGAGAGGTGCGGCGGCAGCCAATCAGAGCGGCGCGCTCCGAAAGTTTCCTTTTATGGCGAGGCGGCGGCGGCGGCGGCCCTATAAAAAGCGAAGCGCGCGGCGGGCGGGAGTCGCTGCGCGCTGCCTTCGCCCCGTGCCCCGCTCCGCCGCCGCCTCGCGCCGCCCGCCCCGGCTCTGACTGACCGCGTTACTCCCACAGGTGAGCGGGCGGGACGGCCCTTCTCCTCCGGGCTGTAATTAGCGCTTGGTTTAATGACGGCTTGTTTCTTTTCTGTGGCTGCGTGAAAGCCTTGAGGGGCTCCGGGAGGGCCCTTTGTGCGGGGGGAGCGGCTCGGGGGGTGCGTGCGTGTGTGTGTGCGTGGGGAGCGCCGCGTGCGGCTCCGCGCTGCCCGGCGGCTGTGAGCGCTGCGGGCGCGGCGCGGGGCTTTGTGCGCTCCGCAGTGTGCGCGAGGGGAGCGCGGCCGGGGGCGGTGCCCCGCGGTGCGGGGGGGGCTGCGAGGGGAACAAAGGCTGCGTGCGGGGTGTGTGCGTGGGGGGGTGAGCAGGGGGTGTGGGCGCGTCGGTCGGGCTGCAACCCCCCCTGCACCCCCCTCCCCGAGTTGCTGAGCACGGCCCGGCTTCGGGTGCGGGGCTCCGTACGGGGCGTGGCGCGGGGCTCGCCGTGCCGGGCGGGGGGTGGCGGCAGGTGGGGGTGCCGGGCGGGGCGGGGCCGCCTCGGGCCGGGGAGGGCTCGGGGGAGGGGCGCGGCGGCCCCCGGAGCGCCGGCGGCTGTCGAGGCGCGGCGAGCCGCAGCCATTGCCTTTTATGGTAATCGTGCGAGAGGGCGCAGGGACTTCCTTTGTCCCAAATCTGTGCGGAGCCGAAATCTGGGAGGCGCCGCCGCACCCCCTCTAGCGGGCGCGGGGCGAAGCGGTGCGGCGCCGGCAGGAAGGAAATGGGCGGGGAGGGCCTTCGTGCGTCGCCGCGCCGCCGTCCCCTTCTCCCTCTCCAGCCTCGGGGCTGTCCGCGGGGGGACGGCTGCCTTCGGGGGGGACGGGGCAGGGCGGGGTTCGGCTTCTGGCGTGTGACCGGCGGCTCTAGAGCCTCTGCTAACCATGTTCATGCCTTCTTCTTTTTCCTACAGCTCCTGGGCAACGTGCTGGTTATTGTGCTGTCTCATCATTTTGGCAAAGAATTG
+>Fluorescent_tag:EGFP
+ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCCTGACCTACGGCGTGCAGTGCTTCAGCCGCTACCCCGACCACATGAAGCAGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCCATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCACCCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAA
+>backbone_element
+ACCCAGCTTTCTTGTACAAAGTGGGAATTC
+>Enhancer:WPRE
+CGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAGCTGACGTCCTTTCCATGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGG
+>backbone_element
+GAATTCCTAGAGCTCGCTGATCAGCCTCGA
+>2nd_polyA_signal:bGH
+CTGTGCCTTCTAGTTGCCAGCCATCTGTTGTTTGCCCCTCCCCCGTGCCTTCCTTGACCCTGGAAGGTGCCACTCCCACTGTCCTTTCCTAATAAAATGAGGAAATTGCATCGCATTGTCTGAGTAGGTGTCATTCTATTCTGGGGGGTGGGGTGGGGCAGGACAGCAAGGGGGAGGATTGGGAAGAGAATAGCAGGCATGCTGGGGA
+>backbone_element
+GGGCCGC
+>3`ITR_start
+CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACCTTTGGTCGCCCGGCCTCAGTGAGCGAGCGAGCGCGCAGAGAGGGAGTGGCCAACTCCATCACTAGGGGTTCCT
+>backbone_element
+CTGCCTGCAGGGGCGCCTGATGCGGTATTTTCTCCTTACGCATCTGTGCGGTATTTCACACCGCATACGTCAAAGCAACCATAGTACGCGCCCTGTAGCGGCGCATTAAGCGCGGCGGGGGTGGTGGTTACGCGCAGCGTGACCGCTACACTTGCCAGCGCCTTAGCGCCCGCTCCTTTCGCTTTCTTCCCTTCCTTTCTCGCCACGTTCGCCGGCTTTCCCCGTCAAGCTCTAAATCGGGGGCTCCCTTTAGGGTTCCGATTTAGTGCTTTACGGCACCTCGACCCCAAAAAACTTGATTTGGGTGATGGTTCACGTAGTGGGCCATCGCCCTGATAGACGGTTTTTCGCCCTTTGACGTTGGAGTCCACGTTCTTTAATAGTGGACTCTTGTTCCAAACTGGAACAACACTCAACTCTATCTCGGGCTATTCTTTTGATTTATAAGGGATTTTGCCGATTTCGGTCTATTGGTTAAAAAATGAGCTGATTTAACAAAAATTTAACGCGAATTTTAACAAAATATTAACGTTTACAATTTTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGCCCCGACACCCGCCAACACCCGCTGACGCGCCCTGACGGGCTTGTCTGCTCCCGGCATCCGCTTACAGACAAGCTGTGACCGTCTCCGGGAGCTGCATGTGTCAGAGGTTTTCACCGTCATCACCGAAACGCGCGAGACGAAAGGGCCTCGTGATACGCCTATTTTTATAGGTTAATGTCATGATAATAATGGTTTCTTAGACGTCAGGTGGCACTTTTCGGGGAAATGTGCGCGGAACCCCTATTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGT
+>Resistance:Ampicillin
+ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA
+>backbone_element
+CTGTCAGACCAAGTTTACTCATATATACTTTAGATTGATTTAAAACTTCATTTTTAATTTAAAAGGATCTAGGTGAAGATCCTTTTTGATAATCTCATGACCAAAATCCCTTAACGTGAGTTTTCGTTCCACTGAGCGTCAGACCCCGTAGAAAAGATCAAAGGATCTTC
+>pUC_ori
+TTGAGATCCTTTTTTTCTGCGCGTAATCTGCTGCTTGCAAACAAAAAAACCACCGCTACCAGCGGTGGTTTGTTTGCCGGATCAAGAGCTACCAACTCTTTTTCCGAAGGTAACTGGCTTCAGCAGAGCGCAGATACCAAATACTGTTCTTCTAGTGTAGCCGTAGTTAGGCCACCACTTCAAGAACTCTGTAGCACCGCCTACATACCTCGCTCTGCTAATCCTGTTACCAGTGGCTGCTGCCAGTGGCGATAAGTCGTGTCTTACCGGGTTGGACTCAAGACGATAGTTACCGGATAAGGCGCAGCGGTCGGGCTGAACGGGGGGTTCGTGCACACAGCCCAGCTTGGAGCGAACGACCTACACCGAACTGAGATACCTACAGCGTGAGCTATGAGAAAGCGCCACGCTTCCCGAAGGGAGAAAGGCGGACAGGTATCCGGTAAGCGGCAGGGTCGGAACAGGAGAGCGCACGAGGGAGCTTCCAGGGGGAAACGCCTGGTATCTTTATAGTCCTGTCGGGTTTCGCCACCTCTGACTTGAGCGTCGATTTTTGTGATGCTCGTCAGGGGGGCGGAGCCTATGGAAA
+>backbone_element
+AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTCCTGCAGGCAG
+
+```
+
+<br />
+<br />
+
+```
+df_fasta = vb.decode_fasta_to_dataframe(fasta_string)
+
+df_fasta = vb.extract_fasta_info(df_fasta)
+
+gb_format = vb.get_genebank(df_fasta, 
+                     name = 'viral_vector', 
+                     definition = ' Synthetic viral plasmid vector')
+
+```
+
+##### Output:
+
+```
+LOCUS       viral_vector   8717 bp    DNA     circular     11-JUL-2025
+DEFINITION   Synthetic viral plasmid vector.
+FEATURES             Location/Qualifiers
+     misc_feature    1..130
+                     /note="5`ITR"
+     misc_feature    158..617
+                     /note="Promoter:TBG"
+     misc_feature    642..647
+                     /note="Kozak_sequence"
+     misc_feature    648..1532
+                     /note="SEQ1:SMN1"
+     misc_feature    1533..2420
+                     /note="SEQ2:SMN2"
+     misc_feature    2421..2642
+                     /note="PolyA_signal:SV40"
+     misc_feature    2643..4375
+                     /note="2nd_promoter:CAG"
+     misc_feature    4376..5095
+                     /note="Fluorescent_tag:EGFP"
+     misc_feature    5126..5723
+                     /note="Enhancer:WPRE"
+     misc_feature    5754..5961
+                     /note="2nd_polyA_signal:bGH"
+     misc_feature    5969..6098
+                     /note="3`ITR"
+     misc_feature    7026..7886
+                     /note="Resistance:Ampicillin"
+     misc_feature    8057..8645
+                     /note="pUC_ori"
+
+ORIGIN
+        1 ctgcgcgctc gctcgctcac tgaggccgcc cgggcaaagc ccgggcgtcg ggcgaccttt
+       61 ggtcgcccgg cctcagtgag cgagcgagcg cgcagagagg gagtggccaa ctccatcact
+      121 aggggttcct tctagacaac tttgtataga aaagttgggg ctggaagcta cctttgacat
+      181 catttcctct gcgaatgcat gtataatttc tacagaacct attagaaagg atcacccagc
+      241 ctctgctttt gtacaacttt cccttaaaaa actgccaatt ccactgctgt ttggcccaat
+      301 agtgagaact ttttcctgct gcctcttggt gcttttgcct atggccccta ttctgcctgc
+      361 tgaagacact cttgccagca tggacttaaa cccctccagc tctgacaatc ctctttctct
+      421 tttgttttac atgaagggtc tggcagccaa agcaatcact caaagttcaa accttatcat
+      481 tttttgcttt gttcctcttg gccttggttt tgtacatcag ctttgaaaat accatcccag
+      541 ggttaatgct ggggttaatt tataactaag agtgctctag ttttgcaata caggacatgc
+      601 tataaaaatg gaaagatcaa gtttgtacaa aaaagcaggc tgccaccatg gctatgtcta
+      661 gcggaggctc tggaggagga gttcctgaac aggaggactc tgtgctgttc cggaggggca
+      721 caggacaaag cgatgacagc gacatctggg acgacacagc tctgattaag gcctacgaca
+      781 aggccgtggc cagcttcaag cacgccctga agaacggcga catctgcgag accagcggaa
+      841 agcctaaaac cacccctaag agaaagcctg ctaaaaagaa caagagccag aagaagaaca
+      901 ccgctgccag cctgcagcag tggaaggtgg gcgacaagtg cagcgccatt tggagcgagg
+      961 acggatgtat ctaccctgcc acaatcgcca gcatcgactt caagcgggag acctgcgtgg
+     1021 tggtgtatac cggctacggc aacagggaag agcagaacct gagcgacctg ctgagcccta
+     1081 tttgcgaggt ggccaataac atcgagcaga acgcccagga gaacgagaac gagagccagg
+     1141 tgagcaccga cgagagcgag aacagccgga gccccggcaa taagagcgac aacatcaagc
+     1201 ccaagagcgc cccctggaac tctttcctgc cccccccccc ccccatgcct ggacctagat
+     1261 tgggacctgg aaaacctgga ctgaaattca acggcccccc cccccccccc cccccccccc
+     1321 ccccccattt gctgtcttgt tggctgcccc ccttcccttc tggacccccc attatccccc
+     1381 cccccccccc catctgtcct gattctctgg acgacgccga tgctttgggc tctatgctga
+     1441 tctcttggta tatgagcggc taccacaccg gctactacat gttccccgag gccagcctga
+     1501 aggccgagca gatgcccgct ccttgttttc tgatggctat gtctagcgga ggctctggag
+     1561 gaggagttcc tgaacaggag gactctgtgc tgttccggag gggcacagga caaagcgatg
+     1621 acagcgacat ctgggacgac acagctctga ttaaggccta cgacaaggcc gtggccagct
+     1681 tcaagcacgc cctgaagaac ggcgacatct gcgagaccag cggaaagcct aaaaccaccc
+     1741 ctaagagaaa gcctgctaaa aagaacaaga gccagaagaa gaacaccgct gccagcctgc
+     1801 agcagtggaa ggtgggcgac aagtgcagcg ccatttggag cgaggacgga tgtatctacc
+     1861 ctgccacaat cgccagcatc gacttcaagc gggagacctg cgtggtggtg tataccggct
+     1921 acggcaacag ggaagagcag aacctgagcg acctgctgag ccctatttgc gaggtggcca
+     1981 ataacatcga gcagaacgcc caggagaacg agaacgagag ccaggtgagc accgacgaga
+     2041 gcgagaacag ccggagcccc ggcaataaga gcgacaacat caagcccaag agcgccccct
+     2101 ggaactcttt cctgcccccc ccccccccca tgcctggacc tagattggga cctggaaaac
+     2161 ctggactgaa attcaacggc cccccccccc cccccccccc cccccccccc catttgctgt
+     2221 cttgttggct gccccccttc ccttctggac cccccattat cccccccccc ccccccatct
+     2281 gtcctgattc tctggacgac gccgatgctt tgggctctat gctgatctct tggtatatga
+     2341 gcggctacca caccggctac tacatgttcc ccgaggccag cctgaaggcc gagcagatgc
+     2401 ccgctccttg ttttctgtga cagacatgat aagatacatt gatgagtttg gacaaaccac
+     2461 aactagaatg cagtgaaaaa aatgctttat ttgtgaaatt tgtgatgcta ttgctttatt
+     2521 tgtaaccatt ataagctgca ataaacaagt taacaacaac aattgcattc attttatgtt
+     2581 tcaggttcag ggggaggtgt gggaggtttt ttaaagcaag taaaacctct acaaatgtgg
+     2641 tactcgacat tgattattga ctagttatta atagtaatca attacggggt cattagttca
+     2701 tagcccatat atggagttcc gcgttacata acttacggta aatggcccgc ctggctgacc
+     2761 gcccaacgac ccccgcccat tgacgtcaat aatgacgtat gttcccatag taacgccaat
+     2821 agggactttc cattgacgtc aatgggtgga gtatttacgg taaactgccc acttggcagt
+     2881 acatcaagtg tatcatatgc caagtacgcc ccctattgac gtcaatgacg gtaaatggcc
+     2941 cgcctggcat tatgcccagt acatgacctt atgggacttt cctacttggc agtacatcta
+     3001 cgtattagtc atcgctatta ccatggtcga ggtgagcccc acgttctgct tcactctccc
+     3061 catctccccc ccctccccac ccccaatttt gtatttattt attttttaat tattttgtgc
+     3121 agcgatgggg gcgggggggg ggggggggcg cgcgccaggc ggggcggggc ggggcgaggg
+     3181 gcggggcggg gcgaggcgga gaggtgcggc ggcagccaat cagagcggcg cgctccgaaa
+     3241 gtttcctttt atggcgaggc ggcggcggcg gcggccctat aaaaagcgaa gcgcgcggcg
+     3301 ggcgggagtc gctgcgcgct gccttcgccc cgtgccccgc tccgccgccg cctcgcgccg
+     3361 cccgccccgg ctctgactga ccgcgttact cccacaggtg agcgggcggg acggcccttc
+     3421 tcctccgggc tgtaattagc gcttggttta atgacggctt gtttcttttc tgtggctgcg
+     3481 tgaaagcctt gaggggctcc gggagggccc tttgtgcggg gggagcggct cggggggtgc
+     3541 gtgcgtgtgt gtgtgcgtgg ggagcgccgc gtgcggctcc gcgctgcccg gcggctgtga
+     3601 gcgctgcggg cgcggcgcgg ggctttgtgc gctccgcagt gtgcgcgagg ggagcgcggc
+     3661 cgggggcggt gccccgcggt gcgggggggg ctgcgagggg aacaaaggct gcgtgcgggg
+     3721 tgtgtgcgtg ggggggtgag cagggggtgt gggcgcgtcg gtcgggctgc aaccccccct
+     3781 gcacccccct ccccgagttg ctgagcacgg cccggcttcg ggtgcggggc tccgtacggg
+     3841 gcgtggcgcg gggctcgccg tgccgggcgg ggggtggcgg caggtggggg tgccgggcgg
+     3901 ggcggggccg cctcgggccg gggagggctc gggggagggg cgcggcggcc cccggagcgc
+     3961 cggcggctgt cgaggcgcgg cgagccgcag ccattgcctt ttatggtaat cgtgcgagag
+     4021 ggcgcaggga cttcctttgt cccaaatctg tgcggagccg aaatctggga ggcgccgccg
+     4081 caccccctct agcgggcgcg gggcgaagcg gtgcggcgcc ggcaggaagg aaatgggcgg
+     4141 ggagggcctt cgtgcgtcgc cgcgccgccg tccccttctc cctctccagc ctcggggctg
+     4201 tccgcggggg gacggctgcc ttcggggggg acggggcagg gcggggttcg gcttctggcg
+     4261 tgtgaccggc ggctctagag cctctgctaa ccatgttcat gccttcttct ttttcctaca
+     4321 gctcctgggc aacgtgctgg ttattgtgct gtctcatcat tttggcaaag aattgatggt
+     4381 gagcaagggc gaggagctgt tcaccggggt ggtgcccatc ctggtcgagc tggacggcga
+     4441 cgtaaacggc cacaagttca gcgtgtccgg cgagggcgag ggcgatgcca cctacggcaa
+     4501 gctgaccctg aagttcatct gcaccaccgg caagctgccc gtgccctggc ccaccctcgt
+     4561 gaccaccctg acctacggcg tgcagtgctt cagccgctac cccgaccaca tgaagcagca
+     4621 cgacttcttc aagtccgcca tgcccgaagg ctacgtccag gagcgcacca tcttcttcaa
+     4681 ggacgacggc aactacaaga cccgcgccga ggtgaagttc gagggcgaca ccctggtgaa
+     4741 ccgcatcgag ctgaagggca tcgacttcaa ggaggacggc aacatcctgg ggcacaagct
+     4801 ggagtacaac tacaacagcc acaacgtcta tatcatggcc gacaagcaga agaacggcat
+     4861 caaggtgaac ttcaagatcc gccacaacat cgaggacggc agcgtgcagc tcgccgacca
+     4921 ctaccagcag aacaccccca tcggcgacgg ccccgtgctg ctgcccgaca accactacct
+     4981 gagcacccag tccgccctga gcaaagaccc caacgagaag cgcgatcaca tggtcctgct
+     5041 ggagttcgtg accgccgccg ggatcactct cggcatggac gagctgtaca agtaaaccca
+     5101 gctttcttgt acaaagtggg aattccgata atcaacctct ggattacaaa atttgtgaaa
+     5161 gattgactgg tattcttaac tatgttgctc cttttacgct atgtggatac gctgctttaa
+     5221 tgcctttgta tcatgctatt gcttcccgta tggctttcat tttctcctcc ttgtataaat
+     5281 cctggttgct gtctctttat gaggagttgt ggcccgttgt caggcaacgt ggcgtggtgt
+     5341 gcactgtgtt tgctgacgca acccccactg gttggggcat tgccaccacc tgtcagctcc
+     5401 tttccgggac tttcgctttc cccctcccta ttgccacggc ggaactcatc gccgcctgcc
+     5461 ttgcccgctg ctggacaggg gctcggctgt tgggcactga caattccgtg gtgttgtcgg
+     5521 ggaagctgac gtcctttcca tggctgctcg cctgtgttgc cacctggatt ctgcgcggga
+     5581 cgtccttctg ctacgtccct tcggccctca atccagcgga ccttccttcc cgcggcctgc
+     5641 tgccggctct gcggcctctt ccgcgtcttc gccttcgccc tcagacgagt cggatctccc
+     5701 tttgggccgc ctccccgcat cgggaattcc tagagctcgc tgatcagcct cgactgtgcc
+     5761 ttctagttgc cagccatctg ttgtttgccc ctcccccgtg ccttccttga ccctggaagg
+     5821 tgccactccc actgtccttt cctaataaaa tgaggaaatt gcatcgcatt gtctgagtag
+     5881 gtgtcattct attctggggg gtggggtggg gcaggacagc aagggggagg attgggaaga
+     5941 gaatagcagg catgctgggg agggccgcct gcgcgctcgc tcgctcactg aggccgcccg
+     6001 ggcaaagccc gggcgtcggg cgacctttgg tcgcccggcc tcagtgagcg agcgagcgcg
+     6061 cagagaggga gtggccaact ccatcactag gggttcctct gcctgcaggg gcgcctgatg
+     6121 cggtattttc tccttacgca tctgtgcggt atttcacacc gcatacgtca aagcaaccat
+     6181 agtacgcgcc ctgtagcggc gcattaagcg cggcgggggt ggtggttacg cgcagcgtga
+     6241 ccgctacact tgccagcgcc ttagcgcccg ctcctttcgc tttcttccct tcctttctcg
+     6301 ccacgttcgc cggctttccc cgtcaagctc taaatcgggg gctcccttta gggttccgat
+     6361 ttagtgcttt acggcacctc gaccccaaaa aacttgattt gggtgatggt tcacgtagtg
+     6421 ggccatcgcc ctgatagacg gtttttcgcc ctttgacgtt ggagtccacg ttctttaata
+     6481 gtggactctt gttccaaact ggaacaacac tcaactctat ctcgggctat tcttttgatt
+     6541 tataagggat tttgccgatt tcggtctatt ggttaaaaaa tgagctgatt taacaaaaat
+     6601 ttaacgcgaa ttttaacaaa atattaacgt ttacaatttt atggtgcact ctcagtacaa
+     6661 tctgctctga tgccgcatag ttaagccagc cccgacaccc gccaacaccc gctgacgcgc
+     6721 cctgacgggc ttgtctgctc ccggcatccg cttacagaca agctgtgacc gtctccggga
+     6781 gctgcatgtg tcagaggttt tcaccgtcat caccgaaacg cgcgagacga aagggcctcg
+     6841 tgatacgcct atttttatag gttaatgtca tgataataat ggtttcttag acgtcaggtg
+     6901 gcacttttcg gggaaatgtg cgcggaaccc ctatttgttt atttttctaa atacattcaa
+     6961 atatgtatcc gctcatgaga caataaccct gataaatgct tcaataatat tgaaaaagga
+     7021 agagtatgag tattcaacat ttccgtgtcg cccttattcc cttttttgcg gcattttgcc
+     7081 ttcctgtttt tgctcaccca gaaacgctgg tgaaagtaaa agatgctgaa gatcagttgg
+     7141 gtgcacgagt gggttacatc gaactggatc tcaacagcgg taagatcctt gagagttttc
+     7201 gccccgaaga acgttttcca atgatgagca cttttaaagt tctgctatgt ggcgcggtat
+     7261 tatcccgtat tgacgccggg caagagcaac tcggtcgccg catacactat tctcagaatg
+     7321 acttggttga gtactcacca gtcacagaaa agcatcttac ggatggcatg acagtaagag
+     7381 aattatgcag tgctgccata accatgagtg ataacactgc ggccaactta cttctgacaa
+     7441 cgatcggagg accgaaggag ctaaccgctt ttttgcacaa catgggggat catgtaactc
+     7501 gccttgatcg ttgggaaccg gagctgaatg aagccatacc aaacgacgag cgtgacacca
+     7561 cgatgcctgt agcaatggca acaacgttgc gcaaactatt aactggcgaa ctacttactc
+     7621 tagcttcccg gcaacaatta atagactgga tggaggcgga taaagttgca ggaccacttc
+     7681 tgcgctcggc ccttccggct ggctggttta ttgctgataa atctggagcc ggtgagcgtg
+     7741 gaagccgcgg tatcattgca gcactggggc cagatggtaa gccctcccgt atcgtagtta
+     7801 tctacacgac ggggagtcag gcaactatgg atgaacgaaa tagacagatc gctgagatag
+     7861 gtgcctcact gattaagcat tggtaactgt cagaccaagt ttactcatat atactttaga
+     7921 ttgatttaaa acttcatttt taatttaaaa ggatctaggt gaagatcctt tttgataatc
+     7981 tcatgaccaa aatcccttaa cgtgagtttt cgttccactg agcgtcagac cccgtagaaa
+     8041 agatcaaagg atcttcttga gatccttttt ttctgcgcgt aatctgctgc ttgcaaacaa
+     8101 aaaaaccacc gctaccagcg gtggtttgtt tgccggatca agagctacca actctttttc
+     8161 cgaaggtaac tggcttcagc agagcgcaga taccaaatac tgttcttcta gtgtagccgt
+     8221 agttaggcca ccacttcaag aactctgtag caccgcctac atacctcgct ctgctaatcc
+     8281 tgttaccagt ggctgctgcc agtggcgata agtcgtgtct taccgggttg gactcaagac
+     8341 gatagttacc ggataaggcg cagcggtcgg gctgaacggg gggttcgtgc acacagccca
+     8401 gcttggagcg aacgacctac accgaactga gatacctaca gcgtgagcta tgagaaagcg
+     8461 ccacgcttcc cgaagggaga aaggcggaca ggtatccggt aagcggcagg gtcggaacag
+     8521 gagagcgcac gagggagctt ccagggggaa acgcctggta tctttatagt cctgtcgggt
+     8581 ttcgccacct ctgacttgag cgtcgatttt tgtgatgctc gtcagggggg cggagcctat
+     8641 ggaaaaacgc cagcaacgcg gcctttttac ggttcctggc cttttgctgg ccttttgctc
+     8701 acatgtcctg caggcag
+//
+```
+
+<br />
+
+
+
+#### 2.3.7 Writing GeneBank format of the plasmid vector <a id="wrgb"></a>
+
+```
+vb.write_genebank(gb_format, path = None, name = 'viral_vector')
+```
+
+    This function saves into GeneBank format *.gb
+    
+    Args:
+        fasta_string (str/GeneBank) - sequences provided in GeneBank format from get_genebank()
+        path (str | None) - the path to save. If None save it to the current working directory. Default: None
+        name (str) - the name of the saving file. Default: 'viral_vector'
+
+
+<br />
+
+<br />
 
 
 ### Have fun JBS®

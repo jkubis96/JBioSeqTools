@@ -1,7 +1,6 @@
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import numpy as np
-from tqdm import tqdm
 import matplotlib.pyplot as plt
 import pandas as pd
 import pkg_resources
@@ -14,17 +13,16 @@ pd.options.mode.chained_assignment = None
 import warnings
 
 warnings.filterwarnings("ignore")
-import random
 
 random.seed(42)
 
 
- #       _  ____   _         _____              _                      __ _____  __  
- #      | ||  _ \ (_)       / ____|            | |                    / /|  __ \ \ \ 
- #      | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___   | | | |__) | | |
- #  _   | ||  _ < | | / _ \ \___ \ | | | |/ __|| __|/ _ \| '_ ` _ \  | | |  _  /  | |
- # | |__| || |_) || || (_) |____) || |_| |\__ \| |_|  __/| | | | | | | | | | \ \  | |
- #  \____/ |____/ |_| \___/|_____/  \__, ||___/ \__|\___||_| |_| |_|  \_\|_|  \_\/_/
+ #       _  ____   _         _____              _                      
+ #      | ||  _ \ (_)       / ____|            | |                    
+ #      | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___   
+ #  _   | ||  _ < | | / _ \ \___ \ | | | |/ __|| __|/ _ \| '_ ` _ \
+ # | |__| || |_) || || (_) |____) || |_| |\__ \| |_|  __/| | | | | |
+ #  \____/ |____/ |_| \___/|_____/  \__, ||___/ \__|\___||_| |_| |_|
  #                                   __/ |                                   
  #                                  |___/                                                                                  
 
@@ -39,7 +37,7 @@ _cwd = str(get_package_directory())
 
 
 
-from jbst.seq_tools import *
+from .seq_tools import *
 
 
 def random_name(length=30):
@@ -2278,33 +2276,31 @@ def vector_create_on_dict(metadata, input_dict:dict, show_plot:bool = True):
 
 
 
+
+
 def plot_vector(df_fasta:pd.DataFrame, title = None, title_size = 20, show_plot:bool = True):
     
     
     """
-    This function displays a plot of the vector plasmid provided in the DataFrame of the FASTA file derived from load_fasta(path) -> decode_fasta_to_dataframe(fasta) -> extract_header_info(df_fasta) pipeline.
+    This function displays a plot of the vector plasmid provided in the DataFrame of the FASTA file derived from load_fasta(path) -> decode_fasta_to_dataframe(fasta) -> extract_fasta_info(df_fasta) pipeline.
     
     
     Args:
-        df_fasta (DataFrame) - dataframe obtained from load_fasta(path) -> decode fasta to_dataframe(fasta) -> extract header_info(df_fasta) pipeline which prepare decoded FASTA file of vector plasmid.           
+        df_fasta (DataFrame) - dataframe obtained from load_fasta(path) -> decode fasta_to_dataframe(fasta) -> extract_fasta_info(df_fasta) pipeline which prepare decoded FASTA file of vector plasmid.           
             *dedicated FASTA structure:
                 
-        >name1_start:1_stop:130_length:130 visible=True
+        >name1
         CTGCGCGCTCGCTCGCTCACTGAGGCCGCCCGGGCAAAGCCCGGGCGTCGGGCGACC
         
-        >name2_start:131_stop:157_length:27 visible=False
+        >name2
         TCTAGACAACTTTGTATAGAAAAGTTG
         
-        >name3_start:158_stop:617_length:460 visible=True
+        >name3
         GGGCTGGAAGCTACCTTTGACATCATTTCCTCTGCGAATGCATGTATAATTTCTAC
         
         Header explanation:
             name1,2,3,... - the name of the sequence element
-            start - beginning of the sequence in the plasmid vector
-            stop - end of the sequence in the plasmid vector
-            length - the length of the sequence
-            visible - True or False, if the element ought to 
-            be displayed and signed or not on the graph
+          
 
        title (str | None) - a title that will display in the middle of the plasmid vector. Default: None
        title_size (int | float) - font size of the title. Default: 20
@@ -2483,11 +2479,11 @@ def plot_vector(df_fasta:pd.DataFrame, title = None, title_size = 20, show_plot:
 
 
 
- #       _  ____   _         _____              _                      __ _____  __  
- #      | ||  _ \ (_)       / ____|            | |                    / /|  __ \ \ \ 
- #      | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___   | | | |__) | | |
- #  _   | ||  _ < | | / _ \ \___ \ | | | |/ __|| __|/ _ \| '_ ` _ \  | | |  _  /  | |
- # | |__| || |_) || || (_) |____) || |_| |\__ \| |_|  __/| | | | | | | | | | \ \  | |
- #  \____/ |____/ |_| \___/|_____/  \__, ||___/ \__|\___||_| |_| |_|  \_\|_|  \_\/_/
+ #       _  ____   _         _____              _                      
+ #      | ||  _ \ (_)       / ____|            | |                    
+ #      | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___   
+ #  _   | ||  _ < | | / _ \ \___ \ | | | |/ __|| __|/ _ \| '_ ` _ \  
+ # | |__| || |_) || || (_) |____) || |_| |\__ \| |_|  __/| | | | | | 
+ #  \____/ |____/ |_| \___/|_____/  \__, ||___/ \__|\___||_| |_| |_|
  #                                   __/ |                                   
  #                                  |___/      
