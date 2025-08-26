@@ -25,6 +25,7 @@ import json
 import time
 
 
+
 random.seed(42)
 
  #       _  ____   _         _____              _                      
@@ -60,14 +61,16 @@ def random_name(length=30):
 ## Ref_sequences download
 
 
-def search_refseq(query, max_results=20):
+def search_refseq(query, max_results=100):
     
     
     try:
         handle = Entrez.esearch(db="nuccore", term=query, retmax=max_results, idtype="acc")
         records = Entrez.read(handle)
         accession_numbers = records["IdList"]
-        accession_numbers = [x for x in accession_numbers if 'NM_' in x]
+        accession_numbers = [x for x in accession_numbers if 'NM_' in x or 'NR_' in x]
+        # accession_numbers = [x for x in accession_numbers]
+
         return accession_numbers
     except:
         
@@ -204,14 +207,20 @@ def get_sequences_gene(gene_name:str, species:str = 'human', max_results:int = 2
                     df = df.reset_index()
                     if max(df['Count']) > min(df['Count']):
                         gen = df['Word'][0]
+                        
+                        refseq_sequences = pd.DataFrame(refseq_sequences)
+                        refseq_sequences = refseq_sequences[refseq_sequences['gene_name'] == gen].to_dict(orient = 'list')
+                        
+                        
                     elif len(df['Count']) == 1:
                         gen = df['Word'][0]
+                        
+                        refseq_sequences = pd.DataFrame(refseq_sequences)
+                        refseq_sequences = refseq_sequences[refseq_sequences['gene_name'] == gen].to_dict(orient = 'list')
+                        
                     else: 
                         gen = gene_name
-                        
-                        
-                    refseq_sequences = pd.DataFrame(refseq_sequences)
-                    refseq_sequences = refseq_sequences[refseq_sequences['gene_name'] == gen].to_dict(orient = 'list')
+                         
                     
                 else:
                     refseq_sequences = None
@@ -868,45 +877,271 @@ def ExtractConsensuse(alignment_file, refseq_sequences = None):
                 else:
                     con_tmp = ""
                     
-    #
         # Create a dictionary for the consensus sequence
-    
+        
+        consensuse_dictionary = {'sequence': [], 'range_to_ref':[], 'side':[], 'ref_seq':[], 'seq_id':[]}
+
+
         if refseq_sequences != None:
+            
+            if 'CDS' in list(refseq_sequences['features'][0].keys()):
+            
+                for n, con in enumerate(consesnuses):
     
-            
-            
-            consensuse_dictionary = {'sequence': [], 'range_to_ref':[], 'side':[]}
-            range_3 = range(refseq_sequences['features'][0]['CDS']['stop'], int(refseq_sequences['features'][0]['CDS']['stop']*2))
-            range_5 = range(int(refseq_sequences['features'][0]['CDS']['start']/2), refseq_sequences['features'][0]['CDS']['start'])
-            range_cds = range(refseq_sequences['features'][0]['CDS']['start'], refseq_sequences['features'][0]['CDS']['stop'])
-            
-            
-            for con in consesnuses:
-                consensuse_dictionary['sequence'].append(con)
-                rang = find_string_range(refseq_sequences['seq'][0], str(con))
-                consensuse_dictionary['range_to_ref'].append(rang)
+                    for ref, _ in enumerate(refseq_sequences['id']):
+                        
+                        CDS_range =  (refseq_sequences['features'][ref]['CDS']['start'], refseq_sequences['features'][ref]['CDS']['stop'])
+                        ref_list = refseq_sequences['seq'][ref]
+                        utr3_range = (max(CDS_range),len(ref_list))
+                        utr5_range = (0,min(CDS_range))
+                        rang = find_string_range(ref_list, str(con))
+                        
+                        
+                        side = []
+                        
+                        if rang[-1] >= utr5_range[0] and utr5_range[-1] >= rang[0]:
+                            side.append('5`UTR')
+                        if rang[-1] >= CDS_range[0] and CDS_range[-1] >= rang[0]:
+                            side.append('CDS')
+                        if rang[-1] >= utr3_range[0] and utr3_range[-1] >= rang[0]:
+                            side.append('3`UTR')
+                            
+                        
+                        if sorted(['3`UTR', 'CDS']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+                            
+                            # CDS/3'UTR
+                            
+                            # CDS
+                            
+                            cds_con_range = (rang[0], utr3_range[0])
+    
+                            cds_con = con_list[cds_con_range[0]:cds_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(cds_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(cds_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('CDS')
+                            
+                            consensuse_dictionary['seq_id'].append(f'CDS_{str(n)}')
+    
+                            
+                            # 3'UTR
+                            
+                            utr3_con_range = (utr3_range[0], rang[-1])
+    
+                            utr3_con = con_list[utr3_con_range[0]:utr3_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(utr3_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(utr3_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('3`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'3`UTR_{str(n)}')
+    
+                            
+                        elif sorted(['5`UTR', 'CDS']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+    
+                            
+                            # CDS/5'UTR
+                            
+                            # CDS
+                            
+                            cds_con_range = (utr5_range[-1], rang[1])
+    
+                            cds_con = con_list[cds_con_range[0]:cds_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(cds_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(cds_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('CDS')
+                            
+                            consensuse_dictionary['seq_id'].append(f'CDS_{str(n)}')
+    
+                            
+                            # 5'UTR
+                            
+                            utr5_con_range = (rang[0], utr5_range[-1])
+    
+                            utr5_con = con_list[utr5_con_range[0]:utr5_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(utr5_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(utr5_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('5`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'5`UTR_{str(n)}')
+    
+                            
+                            
+                        elif sorted(['5`UTR', 'CDS', '3`UTR']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+    
+                            
+                            # CDS/5'UTR/3'UTR
+                            
+                            # CDS
+                            
+                            cds_con_range = (utr5_range[-1], utr3_range[0])
+    
+                            cds_con = con_list[cds_con_range[0]:cds_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(cds_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(cds_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('CDS')
+                            
+                            consensuse_dictionary['seq_id'].append(f'CDS_{str(n)}')
+    
+                            
+                            # 5'UTR
+                            
+                            utr5_con_range = (rang[0], utr5_range[-1])
+    
+                            utr5_con = con_list[utr5_con_range[0]:utr5_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(utr5_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(utr5_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('5`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'5`UTR_{str(n)}')
+    
+                               
+                            # 3'UTR
+                            
+                            utr3_con_range = (utr3_range[0], rang[-1])
+    
+                            utr3_con = con_list[utr3_con_range[0]:utr3_con_range[-1]]
+                            
+                            consensuse_dictionary['sequence'].append(''.join(utr3_con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(utr3_con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('3`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'3`UTR_{str(n)}')
+                            
+                            
+                        elif sorted(['5`UTR']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+    
+                            
+                            # 5'UTR
+                                                    
+                            con_range = (rang[0], rang[-1])
+                            
+                            consensuse_dictionary['sequence'].append(''.join(con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('5`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'5`UTR_{str(n)}')
+    
+                            
+                        elif sorted(['CDS']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+        
+                            # CDS
+                            
+                            con_range = (rang[0], rang[-1])
+                            
+                            consensuse_dictionary['sequence'].append(''.join(con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('CDS')
+                            
+                            consensuse_dictionary['seq_id'].append(f'CDS_{str(n)}')
+                            
+                        elif sorted(['3`UTR']) == sorted(side):
+                            
+                            con_list = list(ref_list)
+        
+                            # 3'UTR
+                                                    
+                            con_range = (rang[0], rang[-1])
+                            
+                            consensuse_dictionary['sequence'].append(''.join(con))
+                            
+                            consensuse_dictionary['range_to_ref'].append(con_range)
+                            
+                            consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                            
+                            consensuse_dictionary['side'].append('3`UTR')
+                            
+                            consensuse_dictionary['seq_id'].append(f'3`UTR_{str(n)}')
+
+            else:
                 
-                side = []
-                
-                if rang[-1] >= range_5[0] and range_5[-1] >= rang[0]:
-                    side.append('5`UTR')
-                if rang[-1] >= range_cds[0] and range_cds[-1] >= rang[0]:
-                    side.append('CDS')
-                if rang[-1] >= range_3[0] and range_3[-1] >= rang[0]:
-                    side.append('3`UTR')
-                    
-                consensuse_dictionary['side'].append(','.join(side))
-            
-                
+                for n, con in enumerate(consesnuses):
+                        
+                    for ref, _ in enumerate(refseq_sequences['id']):
+                        
+                        ref_list = refseq_sequences['seq'][ref]
+                        rang = find_string_range(ref_list, str(con))
+                                                    
+                        consensuse_dictionary['sequence'].append(con)
+                        
+                        consensuse_dictionary['range_to_ref'].append(rang)
+                        
+                        consensuse_dictionary['ref_seq'].append(refseq_sequences['id'][ref])
+                        
+                        consensuse_dictionary['side'].append('gene')
+                        
+                        consensuse_dictionary['seq_id'].append(f'gene_{str(n)}')
+    
     
         else:
-            consensuse_dictionary = {'sequence': [], 'range_to_ref':[], 'side':[]}
-            for con in consesnuses:
+            
+            for n, con in enumerate(consesnuses):
+
                 consensuse_dictionary['sequence'].append(con)
                 consensuse_dictionary['range_to_ref'].append(None)
                 consensuse_dictionary['side'].append(None)
+                
+                
+                consensuse_dictionary['sequence'].append(con)
+                
+                consensuse_dictionary['range_to_ref'].append(None)
+                
+                consensuse_dictionary['ref_seq'].append(None)
+                
+                consensuse_dictionary['side'].append('gene')
+                
+                consensuse_dictionary['seq_id'].append(f'gene_{str(n)}')
     
-        
     
         return consensuse_dictionary
     
@@ -914,6 +1149,7 @@ def ExtractConsensuse(alignment_file, refseq_sequences = None):
         
         print('\nSomething went wrong - ExtractConsensuse. Check the input or contact us!')
         return None
+
 
 
 
@@ -1490,42 +1726,26 @@ def FindRNAi(sequence:str, metadata, length:int = 23, n:int = 200, max_repeat_le
     
             return self_complementary_regions
     
+    
+    
         def repeat_scoring(seq, max_repeat_len):
-            
             repeat_list = []
-            
-            repeat = ''
-     
-            for n, s in enumerate(seq):
-                if n == 0 and seq[n+1] == s:
-                    repeat = repeat + s
-                elif n == len(seq) - 1 and seq[n-1] == s:
-                    repeat = repeat + s
-                elif n == len(seq) - 1:
-                    break
-                elif seq[n+1] == s or seq[n-1] == s:
-                    repeat = repeat + s
-                    
-                if repeat[:1] != repeat[-1:]:
-                    if len(repeat[0:-1]) > max_repeat_len:
-                        repeat_list.append(repeat[0:-1])
-                        repeat = repeat[-1:]
-                    else:
-                        repeat = repeat[-1:]
-                elif n == len(seq) - 1:
-                    if len(repeat) > max_repeat_len:
-                        repeat_list.append(repeat)
-                        
-                        
-                full_len = 0
-                
-                for i in repeat_list:
-                    full_len = full_len + len(i)
-                    
-                pct = round(full_len / len(seq), 2)
-                    
-                            
+            i = 0
+            while i < len(seq):
+                repeat_char = seq[i]
+                count = 1
+                while i + 1 < len(seq) and seq[i + 1] == repeat_char:
+                    count += 1
+                    i += 1
+                if count > max_repeat_len:
+                    repeat_list.append(repeat_char * count)
+                i += 1
+        
+            full_len = sum(len(rep) for rep in repeat_list)
+            pct = round(full_len / len(seq), 2) if len(seq) > 0 else 0.0
+        
             return repeat_list, pct
+        
          
         if len(sequence) > length:
             predicted_rnai = []
@@ -1604,22 +1824,33 @@ def FindRNAi(sequence:str, metadata, length:int = 23, n:int = 200, max_repeat_le
             # Iterate through the XML tree and extract relevant data
             for iteration in root.findall(".//Iteration"):
                 query_id = iteration.find(".//Iteration_query-def").text
-                for hit in iteration.findall(".//Hit"):
-                    subject_id = hit.find(".//Hit_def").text
-                    e_value = hit.find(".//Hsp_evalue").text
-                    bit_score = hit.find(".//Hsp_bit-score").text
-                    alignment_length = hit.find(".//Hsp_align-len").text
-                    query_sequence = hit.find(".//Hsp_qseq").text
-                    subject_sequence = hit.find(".//Hsp_hseq").text
-            
+                
+                if len(iteration.findall(".//Hit")) > 0:
+                    for hit in iteration.findall(".//Hit"):
+                        subject_id = hit.find(".//Hit_def").text
+                        e_value = hit.find(".//Hsp_evalue").text
+                        bit_score = hit.find(".//Hsp_bit-score").text
+                        alignment_length = hit.find(".//Hsp_align-len").text
+                        query_sequence = hit.find(".//Hsp_qseq").text
+                        subject_sequence = hit.find(".//Hsp_hseq").text
+                
+                        query_ids.append(query_id)
+                        subject_ids.append(subject_id)
+                        e_values.append(float(e_value))
+                        bit_scores.append(float(bit_score))
+                        alignment_lengths.append(int(alignment_length))
+                        query_sequences.append(query_sequence)
+                        subject_sequences.append(subject_sequence)
+                else:
+                    
                     query_ids.append(query_id)
-                    subject_ids.append(subject_id)
-                    e_values.append(float(e_value))
-                    bit_scores.append(float(bit_score))
-                    alignment_lengths.append(int(alignment_length))
-                    query_sequences.append(query_sequence)
-                    subject_sequences.append(subject_sequence)
-            
+                    subject_ids.append(None)
+                    e_values.append(None)
+                    bit_scores.append(None)
+                    alignment_lengths.append(0)
+                    query_sequences.append(None)
+                    subject_sequences.append(None)
+                    
             # Create a DataFrame
             data = {
                 'target': subject_ids,
@@ -1635,24 +1866,33 @@ def FindRNAi(sequence:str, metadata, length:int = 23, n:int = 200, max_repeat_le
             name_mapping = dict(zip(unique_names, predicted_rnai))
             df['RNAi_seq'] = df['RNAi_name'].map(name_mapping)
             
-            df['target_gene_name'] = [re.sub('\).*', '', re.sub('.*\(', '', x)).upper() for x in df['target']]
+            df['target_gene_name'] = [
+                re.sub(r'\).*', '', re.sub(r'.*\(', '', x)).upper() if x is not None else None
+                for x in df['target']
+            ] 
             
-            df['species'] = [' '.join(re.sub('PREDICTED: ', '', x).split()[:2]) for x in df['target']]
+            df['species'] = [
+                ' '.join(re.sub(r'^PREDICTED: ', '', x).split()[:2]) if x is not None else None
+                for x in df['target']
+            ]
+            
             
             
             try:
-                if species.lower() == 'human':
-                    df = df[df['species'] == "Homo sapiens"]
-                elif species.lower() == 'mouse':
-                    df = df[df['species'] == "Mus musculus"]
-                elif species.lower() == 'rat':
-                    df = df[df['species'].isin(["Rattus norvegicus"])]
-                elif species.lower() == 'both':
-                    df = df[df['species'].isin(["Mus musculus","Homo sapiens"])]
-                elif species.lower() == 'both2':
-                    df = df[df['species'].isin(["Rattus norvegicus","Homo sapiens"])]
-                elif species.lower() == 'multi':
-                    df = df[df['species'].isin(["Mus musculus", "Rattus norvegicus","Homo sapiens"])]
+                
+                species_map = {
+                     'human': ["Homo sapiens"],
+                     'mouse': ["Mus musculus"],
+                     'rat': ["Rattus norvegicus"],
+                     'both': ["Mus musculus", "Homo sapiens"],
+                     'both2': ["Rattus norvegicus", "Homo sapiens"],
+                     'multi': ["Mus musculus", "Rattus norvegicus", "Homo sapiens"]
+                 }
+                 
+                species_lower = species.lower()
+                if species_lower in species_map:
+                    allowed_species = species_map[species_lower]
+                    df = df[df['species'].isin(allowed_species) | df['species'].isna()]
                     
             except:
                 None
@@ -1853,42 +2093,116 @@ def remove_specific_to_sequence(RNAi_data:pd.DataFrame, sequences, min_length:in
 
 # prediction_structure
 
-def predict_structure(sequence:str, height = None, width = None, len_factor:float = 0.028, show_plot:bool = True):
+def predict_structure(sequence:str, 
+                      anty_sequence:str = '',
+                      height=None, 
+                      width=None, 
+                      dis_alpha:float = 0.35, 
+                      seq_force:int = 27, 
+                      pair_force:int = 8, 
+                      show_plot:bool=True):
     
     """
-    This function makes the graphical of genetic RNA or DNA sequences.
-    
-    Args:
-       sequence (str) - nucleotide sequence provided in UPAC (ATGC) code 
-       height (int | float | None) - height of the graph
-       width (int | float | None) - height of the graph
-       len_factor (float) - is the factor regulating/correcting structure shape depending on sequence length. If your predicted structure looks different than the user expects, regulate this value (0.001-0.1). Default: 0.028
-       show_plot (bool) - if True the plot will be displayed, if False only the graph will be returned to the variable. Default: True
-       
-    Returns:
-        Graph: Graphical presentation of secondary DNA or RNA structure
-        DOT-graph: DOT presentation of secondary DNA or RNA structure
+    Predict and visualize the secondary structure of RNA or DNA sequences.
 
+    The function uses the ViennaRNA package to fold a nucleotide sequence (or 
+    a sequence with its complementary/antisense strand) and generates a 
+    secondary structure in dot-bracket notation. The structure is visualized 
+    as a network graph where nodes represent nucleotides and edges represent 
+    base pairs and backbone connections.
+
+    Args:
+        sequence (str): Nucleotide sequence in IUPAC notation (ATGC/U).
+        anty_sequence (str, optional): Antisense/complementary sequence. 
+            If provided, duplex folding is performed instead of single-strand folding. 
+            Default is '' (single-strand folding).
+        height (int | float | None, optional): Height of the figure in inches. 
+            If None, it is determined automatically based on sequence length.
+        width (int | float | None, optional): Width of the figure in inches. 
+            If None, it is determined automatically based on sequence length.
+        dis_alpha (float, optional): Adjustment factor (0–1) controlling the 
+            attraction of paired nucleotides in the visualization. Default is 0.35. 
+            - Recommended for short sequences (~25 nt): 0.35 (default).
+            - Recommended for longer sequences (e.g. mRNA): ~0.1.
+        
+        seq_force (int, optional): Edge weight for base-pair connections 
+            in the layout algorithm. Default is 27.
+        pair_force (int, optional): Edge weight for backbone connections 
+            in the layout algorithm. Default is 8.
+            - Recommended for short sequences (~25 nt): 8 (default).
+            - Recommended for longer sequences (e.g. mRNA): ~3.
        
+        show_plot (bool, optional): If True, the plot is displayed. 
+            If False, the figure is returned without showing. Default is True.
+
+    Returns:
+        tuple:
+            - fig (matplotlib.figure.Figure): Generated Matplotlib figure object.
+            - dot_bracket_structure (str): Predicted secondary structure in 
+              dot-bracket notation (e.g. "..((..))..").
     """
     
+   
     try:
+        RNA.cvar.dangles = 0
+        
+        if len(anty_sequence) > 0:
+            
+            tmp = RNA.duplexfold(sequence, anty_sequence)
+            s = tmp.structure
+            
+            sequence = sequence + '&' + anty_sequence
+            
+            before, after = s.split('&')
+            before_s, after_s = sequence.split('&')
+            
     
-        (s, mfe) = RNA.fold(sequence)
-        
+            if len(before) < len(before_s):
+                
+                if len(before_s) != tmp.i:
+                    
+                    s = before + (len(before_s) -  tmp.i) *'.' + '&' + after
+                    before, after = s.split('&')
+                    
+                    if len(before_s) > len(before):
+                        
+                        s = (len(before_s) - len(before)) *'.' + before + '&' + after
+                        before, after = s.split('&')
+            
+                else:
+                    
+                    s = (len(before_s) - len(before)) *'.' + before + '&' + after
+                    before, after = s.split('&')
+
+                    
+            
+            if len(after) < len(after_s):
+                
+                if tmp.j > 1:
+                    
+                    s = before + '&' + (tmp.j - 1) *'.'  + after
+                    
+                    before, after = s.split('&')
+                    
+                    if len(after_s) > len(after):
+                        
+                        s =  before + '&' + after + (len(after_s) - len(after)) *'.'
+
+            
+                else:
+                    
+                    s =  before + '&' + after + (len(after_s) - len(after)) *'.'
+                     
+            
+        else:
+            (s, mfe) = RNA.fold(sequence)
+
         pairs = RNA.ptable(s)
-        
         pairs = [(i, pairs[i]) for i in range(1, len(pairs))]
-        
         dot_bracket_structure = s
-        
-        
-        #prepare pair dic
-        
+
         initial_point = []
         pair = []
-        
-        
         for i, j in pairs:
             if j > 0:
                 initial_point.append(i)
@@ -1896,100 +2210,117 @@ def predict_structure(sequence:str, height = None, width = None, len_factor:floa
             else:
                 initial_point.append(i)
                 pair.append(None)
-            
-        if len(sequence)*len_factor < 7:
-            fc = 7
+
+      
+        # weights for secondary structure
+        w1 = [seq_force] * len(initial_point)  
+        l1 = [initial_point[i] for i in range(len(initial_point)-1)]
+        l2 = [initial_point[i+1] for i in range(len(initial_point)-1)]
+        
+        # weights for backbone
+        w2 = [pair_force] * len(l1)  
+        
+        
+        if len(anty_sequence) > 0:
+            dict_of_pairs = pd.DataFrame({
+                'points': initial_point + [1010101010, 101010, 10101010102, 1010102],
+                'sequence': list(sequence) + ['5`', '3`', '5`', '3`']
+            })
         else:
-            fc = len(sequence)*len_factor
+            dict_of_pairs = pd.DataFrame({
+                'points': initial_point + [1010101010, 101010],
+                'sequence': list(sequence) + ['5`', '3`']
+            })
+            
+            
+        try:
+            drop = dict_of_pairs.loc[dict_of_pairs['sequence'] == "&", 'points'].iloc[0]
+        except:
+            drop = None
         
+    
+        if "&" in dict_of_pairs['sequence'].values:
+            dict_of_pairs = dict_of_pairs[dict_of_pairs['sequence'] != "&"].reset_index(drop=True)
 
-        w1 = [fc]* len(initial_point)
-        
-        
-        l1 = [initial_point[i] for i in range(0, len(initial_point)-1, 1)]
-        l2 = [initial_point[i+1] for i in range(0, len(initial_point)-1, 1)]
-        w2 = [2]* len(l1)
-        
-        
-        dict_of_pairs = {'points': initial_point + [1010101010, 101010], 'sequence':list(sequence) + ['5`', '3`']}
-             
-        
-        dict_of_pairs = pd.DataFrame(dict_of_pairs)
-        
-        name_mapping = dict(zip(['A', 'T', 'U', 'Ψ', 'C', 'G', '5`', '3`'], ['blue', 'yellow', 'yellow', 'yellow', 'red', 'green', 'white', 'white']))
 
-        default_color = 'orange'
+        name_mapping = {'A': 'blue', 'T': 'yellow', 'U': 'yellow', 'C': 'red', 'G': 'green', '5`': 'white', '3`': 'white'}
         
-        dict_of_pairs['color'] = dict_of_pairs['sequence'].map(lambda x: name_mapping.get(x, default_color))
-                
+        dict_of_pairs['color'] = dict_of_pairs['sequence'].map(lambda x: name_mapping.get(x, 'orange'))
         
-        initial_point = initial_point + l1
-        pair = pair + l2
-        
+        initial_point += l1
+        pair += l2
         w = w1 + w2
         
-        conection_df = pd.DataFrame({'nc1':initial_point + [101010, 1010101010], 'nc2':pair + [max(initial_point),1], 'weight':w + [2.5,2.5]})
+        pack = [(i, p, n) for i, p, n in zip(initial_point, pair, w) if i != drop and p != drop]
+
+        initial_point, pair, w = map(list, zip(*pack))
         
-        conection_df = conection_df.dropna()
+        if len(anty_sequence) > 0:
+
+            conection_df = pd.DataFrame({
+                'nc1': initial_point + [101010, 1010101010, 10101010102, 1010102],
+                'nc2': pair + [(drop - 1), 1, (drop + 1), max([x for x in initial_point+pair if x is not None])],
+                'weight': w + [pair_force, pair_force, pair_force, pair_force]
+            })
         
-        conection_df = conection_df.reset_index(drop = True)
-        
-        
-        nucleotide_pairs = {'A': 'TUΨ', 'T': 'A', 'C': 'G', 'G': 'C', 'R':'Y', 'Y':'R', 'S':'S', 'W':'W', 'K':'M', 'M':'K', 'B':'V', 'V':'B', 'D':'H', 'H':'D', 'N':'N', 'U':'A'}
-    
-        
-        G = nx.Graph()
-        
-        for i in dict_of_pairs.index:
-            if dict_of_pairs['points'][i] == 1010101010:
-                G.add_node(dict_of_pairs['points'][i], name = dict_of_pairs['sequence'][i], color=dict_of_pairs['color'][i])
-            elif dict_of_pairs['points'][i] == 101010:
-                G.add_node(dict_of_pairs['points'][i], name = dict_of_pairs['sequence'][i], color=dict_of_pairs['color'][i])
-            else:
-                G.add_node(dict_of_pairs['points'][i], name = dict_of_pairs['sequence'][i], color=dict_of_pairs['color'][i])
-            
-            
-        for i in conection_df.index:
-            if conection_df['weight'][i] == fc:
-                if dict_of_pairs['sequence'][dict_of_pairs['points'] == conection_df['nc2'][i]][dict_of_pairs['sequence'][dict_of_pairs['points'] == conection_df['nc2'][i]].index[0]] in nucleotide_pairs[dict_of_pairs['sequence'][dict_of_pairs['points'] == conection_df['nc1'][i]][dict_of_pairs['sequence'][dict_of_pairs['points'] == conection_df['nc1'][i]].index[0]]]:
-                    G.add_edge(conection_df['nc1'][i], conection_df['nc2'][i], weight= conection_df['weight'][i])
-            else:
-                G.add_edge(conection_df['nc1'][i], conection_df['nc2'][i], weight= conection_df['weight'][i])
-    
-        if  height == None or width == None:
-            if len(sequence)/5 > 10:     
-                fig = plt.figure(figsize=(len(sequence)/5, len(sequence)/7))  # Adjust the size (width, height) as needed
-            else:
-                fig = plt.figure(figsize=(10, 7))  
-                
         else:
-            fig = plt.figure(figsize=(width, height))  
-    
+            conection_df = pd.DataFrame({
+                'nc1': initial_point + [101010, 1010101010],
+                'nc2': pair + [max(initial_point + pair), 1],
+                'weight': w + [pair_force, pair_force]
+            })
+            
+            
+        conection_df = conection_df.dropna().reset_index(drop=True)
+
+        G = nx.Graph()
+        for i in dict_of_pairs.index:
+            pt = dict_of_pairs['points'][i]
+            G.add_node(pt, name=dict_of_pairs['sequence'][i], color=dict_of_pairs['color'][i])
+
+        for i in conection_df.index:
+            G.add_edge(conection_df['nc1'][i], conection_df['nc2'][i], weight=conection_df['weight'][i])
+
+        if height is None or width is None:
+            fig = plt.figure(figsize=(max(10, len(sequence)/5), max(7, len(sequence)/7)))
+        else:
+            fig = plt.figure(figsize=(width, height))
+
+        # Kamada-Kawai
         pos = nx.kamada_kawai_layout(G)
         
+        paired_edges = list(zip(initial_point[:len(initial_point)], pair[:len(initial_point)]))
+        paired_edges = [e for e in paired_edges if e[1] is not None]
+        
+        alpha = dis_alpha  
+        
+        for node1, node2 in paired_edges:
+            if node1 in pos and node2 in pos:
+                x1, y1 = pos[node1]
+                x2, y2 = pos[node2]
+                xm, ym = (x1 + x2) / 2, (y1 + y2) / 2  
+        
+                pos[node1] = ((1 - alpha) * x1 + alpha * xm, (1 - alpha) * y1 + alpha * ym)
+                pos[node2] = ((1 - alpha) * x2 + alpha * xm, (1 - alpha) * y2 + alpha * ym)
+
         node_labels = {node: data['name'] for node, data in G.nodes(data=True)}
         node_colors = [data['color'] for node, data in G.nodes(data=True)]
-        
-    
-    
-        
-        # Create a dictionary of edge weights
-        
-        # Draw the graph with node colors and edge weights as labels
-        nx.draw(G, pos, with_labels=True, labels=node_labels, node_size=500 , node_color=node_colors, node_shape = 'o', font_size=13, edge_color='gray')
-        
-        
-        if show_plot == True:
+
+        nx.draw(G, pos, with_labels=True, labels=node_labels, node_size=500,
+                node_color=node_colors, node_shape='o', font_size=13, edge_color='gray')
+
+        if show_plot:
             plt.show()
-        elif show_plot == False:
+        else:
             plt.close(fig)
-        
+
         return fig, dot_bracket_structure
-    
-    except:
-        
-        print('\nSomething went wrong - predict_structure. Check the input or contact us!')
+
+    except Exception as e:
+        print(f"\nSomething went wrong - predict_structure. Check the input or contact us!\n{e}")
         return None, None
+
+
 
 
 
