@@ -13,7 +13,6 @@
 <div align="left">
  Institute of Bioorganic Chemistry<br />
  Polish Academy of Sciences<br />
- Department of Molecular Neurobiology<br />
 </div>
 
 
@@ -76,14 +75,17 @@ Used databases:
 2.2.2 [Creating RNAi / RNAi + expression of the plasmid vector](#rnai) \
 2.2.3 [Creating plasmid vector of in-vitro transcription of mRNA](#transcript-mrna) \
 2.2.4 [Creating plasmid vector of in-vitro transcription of RNAi](#transcription-rnai) \
-2.3. [Creating vector plasmid from FASTA - display existing or custom editing FASTA file](#vector-fasta) \
-2.3.1 [Loading fasta from the file](#fasta2-loading) \
-2.3.2 [Converting the FASTA string to the data frame](#fasta-df) \
-2.3.3 [Decoding FASTA information](#headers) \
-2.3.4 [Creating graph of the plasmid vector](#graph) \
-2.3.5 [Writing FASTA format of the plasmid vector](#wrfa) \
-2.3.6 [Converting FASTA format to GeneBank format](#cvfagb) \
-2.3.7 [Writing GeneBank format of the plasmid vector](#wrgb) 
+2.3. [Creating sequence for synthesis de novo](#denovo) \
+2.3.5 [Creating sequence prediction of mRNA for de novo synthesis](#denovo-mrna) \
+2.3.6 [Creating sequence prediction of RNAi for de novo synthesisi](#denovo-rnai) \
+2.4. [Creating vector plasmid from FASTA - display existing or custom editing FASTA file](#vector-fasta) \
+2.4.1 [Loading fasta from the file](#fasta2-loading) \
+2.4.2 [Converting the FASTA string to the data frame](#fasta-df) \
+2.4.3 [Decoding FASTA information](#headers) \
+2.4.4 [Creating graph of the plasmid vector](#graph) \
+2.4.5 [Writing FASTA format of the plasmid vector](#wrfa) \
+2.4.6 [Converting FASTA format to GeneBank format](#cvfagb) \
+2.4.7 [Writing GeneBank format of the plasmid vector](#wrgb) 
 
 
 
@@ -621,7 +623,7 @@ figure.savefig('predicted_structure.svg')
 * siRNA
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/0b59ecba7ae57b9e0636c83ee71a98465f08424f/fig/sirna.svg" alt="drawing" width="600" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/ad97ffd417f71f3b0de55b5343f2870a276d63d5/fig/sirna.svg" alt="drawing" width="600" />
 </p>
 
 * mRNA
@@ -988,12 +990,12 @@ input_dict = {
     # name of provided promoter sequence
     'promoter_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided enhancer
     # name and sequence the user can take from metadata['regulators'] (load_metadata())
     # sequence orientation 5' ---> 3' - sense
     'regulator_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided enhancer sequence
     'regulator_name':'',
     
@@ -1020,37 +1022,37 @@ input_dict = {
     # if the user wants to not provide any linkers between the transcript sequences, provide an empty string '' for each pair of transcripts where the user wants to avoid linker; empty strings '' provide inside the list ['']
     'linkers_names':[''],
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided fluorescent tag
     # name and sequence the user can take from metadata['fluorescent_tag'] (load_metadata())
     # if the user does not need fluorescent tag, provide ''
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided fluorescent tag
     # if the user does not need fluorescent tag, provide ''
     'fluorescence_name':'',
     
     # WARNING! If the user wants to use an additional promoter for the fluorescent tag expression, provide data for fluorescence_promoter_sequence & fluorescence_polya_sequence!
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided fluorescence promoter
     # name and sequence the user can take from metadata['promoters'] (load_metadata())
     # if the user does not need additional promoter for fluorescent tag, provide ''
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_promoter_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided fluorescence promoter
     # if the user does not need additional promoter for fluorescent tag, provide ''
     'fluorescence_promoter_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided fluorescence polyA signal
     # name and sequence the user can take from metadata['polya_seq'] (load_metadata())
     # if the user does not need additional promoter for fluorescent tag, provide ''
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_polya_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided fluorescence polyA signal
     # if the user does not need additional promoter for fluorescent tag, provide ''
     'fluorescence_polya_name':'',
@@ -1058,13 +1060,13 @@ input_dict = {
     
     # WARNING! If provided sequences for transcripts (> 0) and do not need additional promoter for fluorescent tag, provide fluorescence_linker_sequence or provide empty string ''.
 
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided fluorescence tag linker
     # name and sequence the user can take from metadata['linkers'] (load_metadata())
     # if the user has provided additional promoter, so the fluorescence_linker_sequence is not needed, provide ''
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_linker_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided fluorescence tag linker
     # if the user has provided additional promoter, so the fluorescence_linker_sequence is not needed, provide ''
     'fluorescence_linker_name':'',
@@ -1078,7 +1080,7 @@ input_dict = {
     # name of provided selection marker
     'selection_marker_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # restriction enzymes protection of transcript sequences
     # enzymes the user can take from metadata['restriction'] (load_metadata())
     # if do not need any restriction places protection, provide an empty list []
@@ -1087,7 +1089,15 @@ input_dict = {
     # REQUIRED!
     # available options (True / False)
     # decision; if the user wants the transcription sequences optimized based on the provided species
-    'optimize':True
+    'optimize':True,
+
+      # REQUIRED; if optimize == True!
+    # user-defined percent of GC% content in predicted/optimized sequence
+    'transcript_GC':58,
+
+    # REQUIRED; if optimize == True!
+    # user-defined maximum number of consecutive repeats of a single nucleotide (A, C, T(U), G) in the predicted/optimized sequence, eg. AAAAAA
+    'poly_len':7
 }
 
 ```
@@ -1128,7 +1138,9 @@ input_dict = {
     'selection_marker_sequence':'ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA',
     'selection_marker_name':'Ampicillin',
     'restriction_list':['RsaI', 'MnlI', 'AciI', 'AluI', 'BmrI'],
-    'optimize':True
+    'optimize':True,
+    'transcript_GC':58,
+    'poly_len':7
 }
 
 ```
@@ -1228,7 +1240,11 @@ AACGCCAGCAACGCGGCCTTTTTACGGTTCCTGGCCTTTTGCTGGCCTTTTGCTCACATGTCCTGCAGGCAG
 ```
 
 <br />
-<br />
+
+
+
+
+Sequences output data:
 
 ```
 ## genes names
@@ -1253,7 +1269,74 @@ project['transcripts']['sequences']['optimized_vector_sequence_GC']
     
 ```
 
+``` 
+# Sequences
+# Input sequence
+project['transcripts']['sequences']['sequence']
+# Predicted structure - input
+project['transcripts']['sequences']['sequence_figure']
 
+# Optimized sequence
+project['transcripts']['sequences']['vector_sequence']
+# Predicted structure - optimized
+project['transcripts']['sequences']['optimized_sequence_figure']
+
+```
+
+<br />
+
+Example return:
+
+* Otimized sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/optimized_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Input sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/input_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Alternative options:
+
+``` 
+# Sequences results and metadata
+
+# optimized sequence - main
+project['transcripts']['sequences']
+
+# optimized sequence - alternatives
+project['transcripts']['alternative']
+
+# additional variant 1 
+project['transcripts']['alternative']['var0]
+
+# additional variant 2
+project['transcripts']['alternative']['var1]
+```
+
+<br />
+
+Example return:
+
+```
+>Optimized sequence - main
+ATGCTGACCAGCGGATTGGTTGTGAGCAACATGTTCAGCTACCACCTGGCCGCCCTGGGATTGATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAACCAGTTGGGAGGAGTGTTTATCAACGGCCGGCCTCTGCCTAATCACATCCGGCTGAAAATCGTGGAGTTGGCCGCTCAGGGAGTTAGGCCTTGTGTGATTAGCAGGCAGCTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGCGGTACCAGGAGACCGGCTCTATCAGGCCTGGAGTGATTGGCGGCTCTAAACCCAGGGTGGCTACACCTGAAGTGGAAAAGAAGATCGAGCAGTACAAGAAGGACAACCCCGGCATCTTCAGCTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACAGAAGCACCGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGGAGCAGATTTCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGATAGGTCTGTGAACTTCAGCGTGAGCGGCCTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGACTGTCTGTGAAACGGAAGCAGAGAAGGAGCAGAACAACCTTCACAGCTGAACAGCTGGAGGAACTGGAGAGGGCCTTTGAGAGGACACACTACCCTGATATCTACACCCGGGAAGAGCTGGCTCAGAGAACAAAGTTGACCGAGGCCAGAGTTCAGGTGTGGTTCAGCAACCGGAGGGCCAGATGGAGAAAGCAGATGGGCTCTAACCAGTTGACCGCTCTGAATAGCATCCTGCAGGTGCCCCAGGGAATGGGAACACCTAGCTACATGCTGCACGAGCCCGGATACCCTTTGTCTCACAACGCCGATAACCTGTGGCACAGGTCTAGCATGGCTCAGTCTCTGCAGAGCTTCGGACAGACAATCAAGCCCGAGAACAGCTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATAGCAGCAGCGACCCTTTGTCTTCTACCTGGTCTAGCCCTGTGTCTACCTCTGTGCCTGCTCTGGGATATACCCCTTCTAGCGGACACTATCACCACTACAGCGACGTGACCAAGTCTACCCTGCACAGCTACAACGCCCACATCCCCTCTGTGACCAACATGGAGCGGTGCAGCGTGGACGACTCTCTGGTGGCTCTGAGAATGAAAAGCCGGGAGCACAGCGCCGCCCTGTCTTTGATGCAGGTGGCCGATAACAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 1
+ATGCTGACCAGCGGCCTGGTTGTGAGCAACATGTTCTCTTACCACCTGGCCGCTCTGGGATTAATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAATCAGTTAGGAGGAGTGTTTATTAACGGCAGGCCTTTACCTAATCACATTCGGCTGAAAATCGTGGAGTTAGCTGCTCAGGGAGTTAGACCTTGTGTGATCAGCAGGCAGTTGAGAGTGTCTCACGGATGTGTGTCTAAAATCCTGCAGAGATACCAGGAGACAGGCAGCATCAGGCCTGGAGTGATTGGAGGCTCTAAACCCAGAGTGGCTACACCTGAAGTGGAGAAAAAGATCGAGCAATACAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACAGGTTGCTGAAGGAGGGAATCTGTGATAGGTCTACAGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGAAGCAGATTCCAGAAATGCGACAGCGACGATAACGACAACGACAACGACAACGAGGACGACGACGGCGATGATGGCTCTAATAGCAGCGTGGCCGATAGATCTGTGAACTTCAGCGTGAGCGGATTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGTCTGAGCCTGGACTGTCTGTTAAACGGAAGCAGAGGAGGAGCAGAACAACATTCACAGCCGAGCAGTTGGAGGAACTGGAGAGGGCCTTTGAGAGAACCCACTATCCCGATATCTACACCAGGGAAGAACTGGCTCAGAGAACAAAACTGACCGAGGCCAGAGTTCAGGTGTGGTTTAGCAACCGGAGGGCCAGATGGAGAAAACAGATGGGCAGCAACCAGTTAACAGCCCTGAACAGCATCCTGCAGGTGCCTCAAGGAATGGGAACACCTTCTTATATGCTGCACGAGCCTGGATATCCTTTATCTCATAACGCCGATAACCTGTGGCACAGGTCTTCTATGGCTCAATCTCTGCAGTCTTTCGGACAGACAATTAAGCCCGAGAACTCTTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATTCTTCTAGCGACCCTTTATCTTCTACATGGTCTAGCCCTGTGTCTACATCTGTGCCTGCTCTGGGATATACACCTTCTTCTGGCCACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCATTCTTACAACGCCCACATTCCCAGCGTGACCAACATGGAGCGGTGCTCTGTGGATGACAGCTTAGTGGCTCTGAGAATGAAAAGCAGGGAACACTCTGCTGCTCTGTCTTTAATGCAGGTGGCCGATAATAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 2
+ATGCTGACCAGCGGATTGGTGGTGAGCAACATGTTCTCTTACCACCTGGCTGCTCTGGGCCTGATGCCCTCTTTCCAGATGGAGGGCCGGGGCAGGGTGAATCAGTTGGGCGGAGTGTTTATCAACGGCCGGCCCCTGCCTAATCACATCCGGCTGAAGATCGTGGAGTTGGCTGCTCAGGGAGTGAGACCCTGCGTGATCAGCCGGCAGTTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGAGATACCAGGAGACCGGCAGCATCCGGCCCGGAGTGATTGGCGGCTCTAAGCCCAGGGTGGCTACACCTGAAGTGGAGAAGAAGATCGAGCAGTATAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACCGGAGCACCGTGCCCAGCGTGAGCAGCATCAGCCGGGTGCTGCGGAGCCGGTTCCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGACCGGAGCGTGAACTTCAGCGTGAGCGGCCTGCTGAGCGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGCCTGAGCGTGAAGCGGAAGCAGCGGCGGAGCCGGACCACCTTCACCGCTGAGCAGTTGGAGGAGTTGGAGCGGGCCTTCGAGCGGACCCACTACCCCGACATCTACACCCGGGAGGAGTTGGCCCAGCGGACCAAGTTGACCGAGGCCCGGGTGCAGGTGTGGTTCAGCAACCGGCGGGCCAGATGGAGGAAACAGATGGGCAGCAACCAGTTGACCGCTCTGAACAGCATCCTGCAGGTGCCCCAGGGCATGGGCACCCCTTCTTACATGCTGCACGAGCCCGGATACCCTTTGAGCCACAACGCCGACAACCTGTGGCACCGGAGCAGCATGGCCCAGAGCCTGCAGTCTTTCGGCCAGACCATCAAGCCCGAGAACTCTTACGCCGGCCTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGCCTGCCCACCCACAGCAGCAGCGACCCCCTGAGCAGCACCTGGAGCAGCCCTGTGTCTACCAGCGTGCCTGCTCTGGGATATACCCCCAGCAGCGGACACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCACTCTTACAACGCCCACATCCCCAGCGTGACCAACATGGAGCGGTGCAGCGTGGACGACAGCCTGGTGGCCCTGCGGATGAAGAGCCGGGAGCACAGCGCTGCTCTGAGCCTGATGCAGGTGGCCGACAACAAGATGGCCACCTCTTTCTGA
+```
+
+<br />
 
 
 <br />
@@ -1291,20 +1374,29 @@ input_dict = {
     'promoter_ncrna_sequence':'',
     # REQUIRED!
     # name of provided promoter sequence
-	'promoter_ncrna_name':'',
+    'promoter_ncrna_name':'',
 
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of custom RNAi, which can be provided by user
     # if provided, then the algorithm of RNAi estimation is off
     # if empt '' the algorithm share the best possible RNAi based on 'rnai_gene_name'
     # sequence orientation 5' ---> 3' - sense
     'rnai_sequence':'',
     
+    # REQUIRED; if rnai_sequence is empty!
+    # length of RNAi (defined by user)
+    # recomended range: 20–25
+    'rnai_length':20,
+
+    # OPTIONAL; if rnai_sequence is empty!
+    # overhang sequence of RNAi sequence 3' end (defined by user)
+    # recomended 'UU'
+    'overhang_3_prime':'UU',
+
     # REQUIRED!
-    # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien or Mus musculus)
+    # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien / Mus musculus / Rattus norvegicus)
     # algorithm is working when the rnai_sequence is empty ''
     # if the user defines 'rnai_sequence' this 'rnai_gene_name' is just a name for a user-supplied sequence
-    # 'rnai_gene_name' - provide in the HGNC nomenclature
     'rnai_gene_name':'',
     
     # REQUIRED!
@@ -1347,11 +1439,11 @@ input_dict = {
     # name of provided promoter sequence
     'promoter_name':'',
     
-    # POSSIBLE if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
+    # OPTIONAL if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
     # sequence of provided enhancer
     # sequence orientation 5' ---> 3' - sense
     'regulator_sequence':'',
-    # POSSIBLE if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
+    # OPTIONAL if transcript sequence occures or fluorescent tag will be included, if not empty string ''!
     # name of provided enhancer sequence
     'regulator_name':'',
     
@@ -1363,23 +1455,23 @@ input_dict = {
     # name of provided polyA singla sequence
     'polya_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of provided fluorescent tag
     # if the user does not need fluorescent tag, provide ''
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_sequence':'',
-    # POSSIBLE!
+    # OPTIONAL!
     # name of provided fluorescent tag
     # if the user does not need fluorescent tag, provide ''
     'fluorescence_name':'',
     
     # WARNING! If provided sequences for transcripts (> 0), provide fluorescence_linker_sequence or provide empty string ''.
     
-    # POSSIBLE if transcript sequence occures, if not empty string ''!
+    # OPTIONAL if transcript sequence occures, if not empty string ''!
     # sequence of provided fluorescence tag linker
     # sequence orientation 5' ---> 3' - sense
     'fluorescence_linker_sequence':'',
-    # POSSIBLE if transcript sequence occures, if not empty string ''!
+    # OPTIONAL if transcript sequence occures, if not empty string ''!
     # name of provided fluorescence tag linker
     'fluorescence_linker_name':'',
     
@@ -1391,7 +1483,7 @@ input_dict = {
     # name of provided selection marker
     'selection_marker_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # restriction enzymes protection of transcript sequences
     # if the user does not need any restriction places protection, provide empty list []
     'restriction_list':[],
@@ -1400,7 +1492,15 @@ input_dict = {
     # available options (True / False)
     # decision; if the user wants the transcription sequences optimized based on the provided species
     # if the user has omitted the additional transcript sequences, provide False
-    'optimize':True
+    'optimize':True,
+
+    # REQUIRED; if optimize == True!
+    # user-defined percent of GC% content in predicted/optimized sequence
+    'transcript_GC':58,
+
+    # REQUIRED; if optimize == True!
+    # user-defined maximum number of consecutive repeats of a single nucleotide (A, C, T(U), G) in the predicted/optimized sequence, eg. AAAAAA
+    'poly_len':7
 }  
 
 
@@ -1423,6 +1523,8 @@ input_dict = {
     'promoter_ncrna_name':'U6',
     'promoter_ncrna_sequence':'GAGGGCCTATTTCCCATGATTCCTTCATATTTGCATATACGATACAAGGCTGTTAGAGAGATAATTGGAATTAATTTGACTGTAAACACAAAGATATTAGTACAAAATACGTGACGTAGAAAGTAATAATTTCTTGGGTAGTTTGCAGTTTTAAAATTATGTTTTAAAATGGACTATCATATGCTTACCGTAACTTGAAAGTATTTCGATTTCTTGGCTTTATATATCTTGTGGAAAGGACGAAACACC',
     'rnai_sequence':'',
+    'rnai_length':20,
+    'overhang_3_prime':'UU',
     'rnai_gene_name':'PAX3',
     'loop_sequence':'TAGTGAAGCCACAGATGTAC',
     'sequences':['ATGGCGATGAGCAGCGGCGGCAGTGGTGGCGGCGTCCCGGAGCAGGAGGATTCCGTGCTGTTCCGGCGCGGCACAGGCCAGAGCGATGATTCTGACATTTGGGATGATACAGCACTGATAAAAGCATATGATAAAGCTGTGGCTTCATTTAAGCATGCTCTAAAGAATGGTGACATTTGTGAAACTTCGGGTAAACCAAAAACCACACCTAAAAGAAAACCTGCTAAGAAGAATAAAAGCCAAAAGAAGAATACTGCAGCTTCCTTACAACAGTGGAAAGTTGGGGACAAATGTTCTGCCATTTGGTCAGAAGACGGTTGCATTTACCCAGCTACCATTGCTTCAATTGATTTTAAGAGAGAAACCTGTGTTGTGGTTTACACTGGATATGGAAATAGAGAGGAGCAAAATCTGTCCGATCTACTTTCCCCAATCTGTGAAGTAGCTAATAATATAGAACAAAATGCTCAAGAGAATGAAAATGAAAGCCAAGTTTCAACAGATGAAAGTGAGAACTCCAGGTCTCCTGGAAATAAATCAGATAACATCAAGCCCAAATCTGCTCCATGGAACTCTTTTCTCCCTCCACCACCCCCCATGCCAGGGCCAAGACTGGGACCAGGAAAGCCAGGTCTAAAATTCAATGGCCCACCACCGCCACCGCCACCACCACCACCCCACTTACTATCATGCTGGCTGCCTCCATTTCCTTCTGGACCACCAATAATTCCCCCACCACCTCCCATATGTCCAGATTCTCTTGATGATGCTGATGCTTTGGGAAGTATGTTAATTTCATGGTACATGAGTGGCTATCATACTGGCTATTATATGTTTCCTGAGGCCTCCCTAAAAGCCGAGCAGATGCCAGCACCATGCTTCCTGTAA'],
@@ -1442,7 +1544,9 @@ input_dict = {
     'selection_marker_sequence':'ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA',
     'selection_marker_name':'Ampicillin',
     'restriction_list':['RsaI', 'MnlI', 'AciI', 'AluI', 'BmrI'],
-    'optimize':True
+    'optimize':True,
+    'transcript_GC':58,
+    'poly_len':7
 }  
 ```
 
@@ -1569,7 +1673,7 @@ Example return:
 <br />
 
 ```
-# other selected RNAi
+# other selected RNAi with statistics
 
 pd.DataFrame(project['rnai']['full_data'])
 ```
@@ -1581,7 +1685,9 @@ pd.DataFrame(project['rnai']['full_data'])
 
 
 <br />
-<br />
+
+Sequences output data:
+
 
 ```
 ## *if occur user-defined sequences for additional expression in the plasmid vector
@@ -1606,6 +1712,73 @@ project['transcripts']['sequences']['optimized_vector_sequence_frequence']
 project['transcripts']['sequences']['optimized_vector_sequence_GC']
 ```
 
+
+``` 
+# Sequences
+# Input sequence
+project['transcripts']['sequences']['sequence']
+# Predicted structure - input
+project['transcripts']['sequences']['sequence_figure']
+
+# Optimized sequence
+project['transcripts']['sequences']['vector_sequence']
+# Predicted structure - optimized
+project['transcripts']['sequences']['optimized_sequence_figure']
+
+```
+
+<br />
+
+Example return:
+
+* Otimized sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/optimized_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Input sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/input_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Alternative options:
+
+``` 
+# Sequences results and metadata
+
+# optimized sequence - main
+project['transcripts']['sequences']
+
+# optimized sequence - alternatives
+project['transcripts']['alternative']
+
+# additional variant 1 
+project['transcripts']['alternative']['var0]
+
+# additional variant 2
+project['transcripts']['alternative']['var1]
+```
+
+<br />
+
+Example return:
+
+```
+>Optimized sequence - main
+ATGCTGACCAGCGGATTGGTTGTGAGCAACATGTTCAGCTACCACCTGGCCGCCCTGGGATTGATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAACCAGTTGGGAGGAGTGTTTATCAACGGCCGGCCTCTGCCTAATCACATCCGGCTGAAAATCGTGGAGTTGGCCGCTCAGGGAGTTAGGCCTTGTGTGATTAGCAGGCAGCTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGCGGTACCAGGAGACCGGCTCTATCAGGCCTGGAGTGATTGGCGGCTCTAAACCCAGGGTGGCTACACCTGAAGTGGAAAAGAAGATCGAGCAGTACAAGAAGGACAACCCCGGCATCTTCAGCTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACAGAAGCACCGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGGAGCAGATTTCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGATAGGTCTGTGAACTTCAGCGTGAGCGGCCTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGACTGTCTGTGAAACGGAAGCAGAGAAGGAGCAGAACAACCTTCACAGCTGAACAGCTGGAGGAACTGGAGAGGGCCTTTGAGAGGACACACTACCCTGATATCTACACCCGGGAAGAGCTGGCTCAGAGAACAAAGTTGACCGAGGCCAGAGTTCAGGTGTGGTTCAGCAACCGGAGGGCCAGATGGAGAAAGCAGATGGGCTCTAACCAGTTGACCGCTCTGAATAGCATCCTGCAGGTGCCCCAGGGAATGGGAACACCTAGCTACATGCTGCACGAGCCCGGATACCCTTTGTCTCACAACGCCGATAACCTGTGGCACAGGTCTAGCATGGCTCAGTCTCTGCAGAGCTTCGGACAGACAATCAAGCCCGAGAACAGCTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATAGCAGCAGCGACCCTTTGTCTTCTACCTGGTCTAGCCCTGTGTCTACCTCTGTGCCTGCTCTGGGATATACCCCTTCTAGCGGACACTATCACCACTACAGCGACGTGACCAAGTCTACCCTGCACAGCTACAACGCCCACATCCCCTCTGTGACCAACATGGAGCGGTGCAGCGTGGACGACTCTCTGGTGGCTCTGAGAATGAAAAGCCGGGAGCACAGCGCCGCCCTGTCTTTGATGCAGGTGGCCGATAACAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 1
+ATGCTGACCAGCGGCCTGGTTGTGAGCAACATGTTCTCTTACCACCTGGCCGCTCTGGGATTAATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAATCAGTTAGGAGGAGTGTTTATTAACGGCAGGCCTTTACCTAATCACATTCGGCTGAAAATCGTGGAGTTAGCTGCTCAGGGAGTTAGACCTTGTGTGATCAGCAGGCAGTTGAGAGTGTCTCACGGATGTGTGTCTAAAATCCTGCAGAGATACCAGGAGACAGGCAGCATCAGGCCTGGAGTGATTGGAGGCTCTAAACCCAGAGTGGCTACACCTGAAGTGGAGAAAAAGATCGAGCAATACAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACAGGTTGCTGAAGGAGGGAATCTGTGATAGGTCTACAGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGAAGCAGATTCCAGAAATGCGACAGCGACGATAACGACAACGACAACGACAACGAGGACGACGACGGCGATGATGGCTCTAATAGCAGCGTGGCCGATAGATCTGTGAACTTCAGCGTGAGCGGATTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGTCTGAGCCTGGACTGTCTGTTAAACGGAAGCAGAGGAGGAGCAGAACAACATTCACAGCCGAGCAGTTGGAGGAACTGGAGAGGGCCTTTGAGAGAACCCACTATCCCGATATCTACACCAGGGAAGAACTGGCTCAGAGAACAAAACTGACCGAGGCCAGAGTTCAGGTGTGGTTTAGCAACCGGAGGGCCAGATGGAGAAAACAGATGGGCAGCAACCAGTTAACAGCCCTGAACAGCATCCTGCAGGTGCCTCAAGGAATGGGAACACCTTCTTATATGCTGCACGAGCCTGGATATCCTTTATCTCATAACGCCGATAACCTGTGGCACAGGTCTTCTATGGCTCAATCTCTGCAGTCTTTCGGACAGACAATTAAGCCCGAGAACTCTTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATTCTTCTAGCGACCCTTTATCTTCTACATGGTCTAGCCCTGTGTCTACATCTGTGCCTGCTCTGGGATATACACCTTCTTCTGGCCACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCATTCTTACAACGCCCACATTCCCAGCGTGACCAACATGGAGCGGTGCTCTGTGGATGACAGCTTAGTGGCTCTGAGAATGAAAAGCAGGGAACACTCTGCTGCTCTGTCTTTAATGCAGGTGGCCGATAATAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 2
+ATGCTGACCAGCGGATTGGTGGTGAGCAACATGTTCTCTTACCACCTGGCTGCTCTGGGCCTGATGCCCTCTTTCCAGATGGAGGGCCGGGGCAGGGTGAATCAGTTGGGCGGAGTGTTTATCAACGGCCGGCCCCTGCCTAATCACATCCGGCTGAAGATCGTGGAGTTGGCTGCTCAGGGAGTGAGACCCTGCGTGATCAGCCGGCAGTTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGAGATACCAGGAGACCGGCAGCATCCGGCCCGGAGTGATTGGCGGCTCTAAGCCCAGGGTGGCTACACCTGAAGTGGAGAAGAAGATCGAGCAGTATAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACCGGAGCACCGTGCCCAGCGTGAGCAGCATCAGCCGGGTGCTGCGGAGCCGGTTCCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGACCGGAGCGTGAACTTCAGCGTGAGCGGCCTGCTGAGCGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGCCTGAGCGTGAAGCGGAAGCAGCGGCGGAGCCGGACCACCTTCACCGCTGAGCAGTTGGAGGAGTTGGAGCGGGCCTTCGAGCGGACCCACTACCCCGACATCTACACCCGGGAGGAGTTGGCCCAGCGGACCAAGTTGACCGAGGCCCGGGTGCAGGTGTGGTTCAGCAACCGGCGGGCCAGATGGAGGAAACAGATGGGCAGCAACCAGTTGACCGCTCTGAACAGCATCCTGCAGGTGCCCCAGGGCATGGGCACCCCTTCTTACATGCTGCACGAGCCCGGATACCCTTTGAGCCACAACGCCGACAACCTGTGGCACCGGAGCAGCATGGCCCAGAGCCTGCAGTCTTTCGGCCAGACCATCAAGCCCGAGAACTCTTACGCCGGCCTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGCCTGCCCACCCACAGCAGCAGCGACCCCCTGAGCAGCACCTGGAGCAGCCCTGTGTCTACCAGCGTGCCTGCTCTGGGATATACCCCCAGCAGCGGACACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCACTCTTACAACGCCCACATCCCCAGCGTGACCAACATGGAGCGGTGCAGCGTGGACGACAGCCTGGTGGCCCTGCGGATGAAGAGCCGGGAGCACAGCGCTGCTCTGAGCCTGATGCAGGTGGCCGACAACAAGATGGCCACCTCTTTCTGA
+```
 
 
 
@@ -1690,7 +1863,7 @@ input_dict = {
     # name of provided selection marker
     'selection_marker_name':'',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # restriction enzymes protection of transcript sequences
     # if the user does not need any restriction places protection, provide empty list []
     'restriction_list':[],
@@ -1699,6 +1872,14 @@ input_dict = {
     # available options (True / False)
     # decision; if the user wants the transcription sequences optimized based on the provided species
     'optimize':True
+
+    # REQUIRED; if optimize == True!
+    # user-defined percent of GC% content in predicted/optimized sequence
+    'transcript_GC':58,
+
+    # REQUIRED; if optimize == True!
+    # user-defined maximum number of consecutive repeats of a single nucleotide (A, C, T(U), G) in the predicted/optimized sequence, eg. AAAAAA
+    'poly_len':7
 
 }
 ```
@@ -1730,7 +1911,9 @@ input_dict = {
     'selection_marker_sequence':'ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA',
     'selection_marker_name':'Ampicillin',
     'restriction_list':['RsaI', 'MnlI', 'AciI', 'AluI', 'BmrI'],
-    'optimize':True
+    'optimize':True,
+    'transcript_GC':58,
+    'poly_len':7
 }
 ```
 
@@ -1817,6 +2000,7 @@ ACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGA
 ```
 
 <br />
+
 <br />
 
 ```
@@ -1844,6 +2028,77 @@ project['transcripts']['sequences']['optimized_vector_sequence_GC']
 
 <br />
 
+Sequences output data:
+
+``` 
+# Sequences
+# Input sequence
+project['transcripts']['sequences']['sequence']
+# Predicted structure - input
+project['transcripts']['sequences']['sequence_figure']
+
+# Optimized sequence
+project['transcripts']['sequences']['vector_sequence']
+# Predicted structure - optimized
+project['transcripts']['sequences']['optimized_sequence_figure']
+
+```
+
+<br />
+
+Example return:
+
+* Otimized sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/optimized_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Input sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/input_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Alternative options:
+
+``` 
+# Sequences results and metadata
+
+# optimized sequence - main
+project['transcripts']['sequences']
+
+# optimized sequence - alternatives
+project['transcripts']['alternative']
+
+# additional variant 1 
+project['transcripts']['alternative']['var0]
+
+# additional variant 2
+project['transcripts']['alternative']['var1]
+```
+
+<br />
+
+Example return:
+
+```
+>Optimized sequence - main
+ATGCTGACCAGCGGATTGGTTGTGAGCAACATGTTCAGCTACCACCTGGCCGCCCTGGGATTGATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAACCAGTTGGGAGGAGTGTTTATCAACGGCCGGCCTCTGCCTAATCACATCCGGCTGAAAATCGTGGAGTTGGCCGCTCAGGGAGTTAGGCCTTGTGTGATTAGCAGGCAGCTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGCGGTACCAGGAGACCGGCTCTATCAGGCCTGGAGTGATTGGCGGCTCTAAACCCAGGGTGGCTACACCTGAAGTGGAAAAGAAGATCGAGCAGTACAAGAAGGACAACCCCGGCATCTTCAGCTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACAGAAGCACCGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGGAGCAGATTTCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGATAGGTCTGTGAACTTCAGCGTGAGCGGCCTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGACTGTCTGTGAAACGGAAGCAGAGAAGGAGCAGAACAACCTTCACAGCTGAACAGCTGGAGGAACTGGAGAGGGCCTTTGAGAGGACACACTACCCTGATATCTACACCCGGGAAGAGCTGGCTCAGAGAACAAAGTTGACCGAGGCCAGAGTTCAGGTGTGGTTCAGCAACCGGAGGGCCAGATGGAGAAAGCAGATGGGCTCTAACCAGTTGACCGCTCTGAATAGCATCCTGCAGGTGCCCCAGGGAATGGGAACACCTAGCTACATGCTGCACGAGCCCGGATACCCTTTGTCTCACAACGCCGATAACCTGTGGCACAGGTCTAGCATGGCTCAGTCTCTGCAGAGCTTCGGACAGACAATCAAGCCCGAGAACAGCTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATAGCAGCAGCGACCCTTTGTCTTCTACCTGGTCTAGCCCTGTGTCTACCTCTGTGCCTGCTCTGGGATATACCCCTTCTAGCGGACACTATCACCACTACAGCGACGTGACCAAGTCTACCCTGCACAGCTACAACGCCCACATCCCCTCTGTGACCAACATGGAGCGGTGCAGCGTGGACGACTCTCTGGTGGCTCTGAGAATGAAAAGCCGGGAGCACAGCGCCGCCCTGTCTTTGATGCAGGTGGCCGATAACAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 1
+ATGCTGACCAGCGGCCTGGTTGTGAGCAACATGTTCTCTTACCACCTGGCCGCTCTGGGATTAATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAATCAGTTAGGAGGAGTGTTTATTAACGGCAGGCCTTTACCTAATCACATTCGGCTGAAAATCGTGGAGTTAGCTGCTCAGGGAGTTAGACCTTGTGTGATCAGCAGGCAGTTGAGAGTGTCTCACGGATGTGTGTCTAAAATCCTGCAGAGATACCAGGAGACAGGCAGCATCAGGCCTGGAGTGATTGGAGGCTCTAAACCCAGAGTGGCTACACCTGAAGTGGAGAAAAAGATCGAGCAATACAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACAGGTTGCTGAAGGAGGGAATCTGTGATAGGTCTACAGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGAAGCAGATTCCAGAAATGCGACAGCGACGATAACGACAACGACAACGACAACGAGGACGACGACGGCGATGATGGCTCTAATAGCAGCGTGGCCGATAGATCTGTGAACTTCAGCGTGAGCGGATTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGTCTGAGCCTGGACTGTCTGTTAAACGGAAGCAGAGGAGGAGCAGAACAACATTCACAGCCGAGCAGTTGGAGGAACTGGAGAGGGCCTTTGAGAGAACCCACTATCCCGATATCTACACCAGGGAAGAACTGGCTCAGAGAACAAAACTGACCGAGGCCAGAGTTCAGGTGTGGTTTAGCAACCGGAGGGCCAGATGGAGAAAACAGATGGGCAGCAACCAGTTAACAGCCCTGAACAGCATCCTGCAGGTGCCTCAAGGAATGGGAACACCTTCTTATATGCTGCACGAGCCTGGATATCCTTTATCTCATAACGCCGATAACCTGTGGCACAGGTCTTCTATGGCTCAATCTCTGCAGTCTTTCGGACAGACAATTAAGCCCGAGAACTCTTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATTCTTCTAGCGACCCTTTATCTTCTACATGGTCTAGCCCTGTGTCTACATCTGTGCCTGCTCTGGGATATACACCTTCTTCTGGCCACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCATTCTTACAACGCCCACATTCCCAGCGTGACCAACATGGAGCGGTGCTCTGTGGATGACAGCTTAGTGGCTCTGAGAATGAAAAGCAGGGAACACTCTGCTGCTCTGTCTTTAATGCAGGTGGCCGATAATAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 2
+ATGCTGACCAGCGGATTGGTGGTGAGCAACATGTTCTCTTACCACCTGGCTGCTCTGGGCCTGATGCCCTCTTTCCAGATGGAGGGCCGGGGCAGGGTGAATCAGTTGGGCGGAGTGTTTATCAACGGCCGGCCCCTGCCTAATCACATCCGGCTGAAGATCGTGGAGTTGGCTGCTCAGGGAGTGAGACCCTGCGTGATCAGCCGGCAGTTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGAGATACCAGGAGACCGGCAGCATCCGGCCCGGAGTGATTGGCGGCTCTAAGCCCAGGGTGGCTACACCTGAAGTGGAGAAGAAGATCGAGCAGTATAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACCGGAGCACCGTGCCCAGCGTGAGCAGCATCAGCCGGGTGCTGCGGAGCCGGTTCCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGACCGGAGCGTGAACTTCAGCGTGAGCGGCCTGCTGAGCGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGCCTGAGCGTGAAGCGGAAGCAGCGGCGGAGCCGGACCACCTTCACCGCTGAGCAGTTGGAGGAGTTGGAGCGGGCCTTCGAGCGGACCCACTACCCCGACATCTACACCCGGGAGGAGTTGGCCCAGCGGACCAAGTTGACCGAGGCCCGGGTGCAGGTGTGGTTCAGCAACCGGCGGGCCAGATGGAGGAAACAGATGGGCAGCAACCAGTTGACCGCTCTGAACAGCATCCTGCAGGTGCCCCAGGGCATGGGCACCCCTTCTTACATGCTGCACGAGCCCGGATACCCTTTGAGCCACAACGCCGACAACCTGTGGCACCGGAGCAGCATGGCCCAGAGCCTGCAGTCTTTCGGCCAGACCATCAAGCCCGAGAACTCTTACGCCGGCCTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGCCTGCCCACCCACAGCAGCAGCGACCCCCTGAGCAGCACCTGGAGCAGCCCTGTGTCTACCAGCGTGCCTGCTCTGGGATATACCCCCAGCAGCGGACACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCACTCTTACAACGCCCACATCCCCAGCGTGACCAACATGGAGCGGTGCAGCGTGGACGACAGCCTGGTGGCCCTGCGGATGAAGAGCCGGGAGCACAGCGCTGCTCTGAGCCTGATGCAGGTGGCCGACAACAAGATGGCCACCTCTTTCTGA
+```
+
+<br />
+
 
 #### 2.2.4 Creating plasmid vector of in-vitro transcription of RNAi <a id="transcription-rnai"></a>
 
@@ -1852,7 +2107,7 @@ project['transcripts']['sequences']['optimized_vector_sequence_GC']
 
 ```
 input_dict = {
-    
+   
     # REQUIRED!
     # name of current project (defined by user)
     'project_name':'',
@@ -1870,15 +2125,25 @@ input_dict = {
     # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
     'species':'human',
     
-    # POSSIBLE!
+    # OPTIONAL!
     # sequence of custom RNAi, which can be provided by user
     # if provided, then the algorithm of RNAi estimation is off
     # if empt '' the algorithm share the best possible RNAi based on 'rnai_gene_name'
     # sequence orientation 5' ---> 3' - sense
     'rnai_sequence':'',
+
+    # REQUIRED; if rnai_sequence is empty!
+    # length of RNAi (defined by user)
+    # recomended range: 20–25
+    'rnai_length':20,
+
+    # OPTIONAL; if rnai_sequence is empty!
+    # overhang sequence of RNAi sequence 3' end (defined by user)
+    # recomended 'UU'
+    'overhang_3_prime':'UU',
     
     # REQUIRED!
-    # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien or Mus musculus)
+    # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien / Mus musculus / Rattus norvegicus)
     # algorithm is working when the rnai_sequence is empty ''
     # if the user defines 'rnai_sequence' this 'rnai_gene_name' is just a name for a user-supplied sequence
     'rnai_gene_name':'',
@@ -1916,6 +2181,8 @@ input_dict = {
     'vector_function':'rnai',
     'species':'human',
     'rnai_sequence':'',
+    'rnai_length':20,
+    'overhang_3_prime':'UU',
     'rnai_gene_name':'KIT',
     'loop_sequence':'TAGTGAAGCCACAGATGTAC',
     'selection_marker_sequence':'ATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTATTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGTAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGAAGCCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAA',
@@ -2030,7 +2297,7 @@ Example return:
 <br />
 
 ```
-# other selected RNAi
+# other selected RNAi with statistics
 
 pd.DataFrame(project['rnai']['full_data'])
 ```
@@ -2045,7 +2312,343 @@ pd.DataFrame(project['rnai']['full_data'])
 <br />
 
 
-#### 2.3. Creating vector plasmid from FASTA - display existing or custom editing FASTA file <a id="vector-fasta"></a>
+#### 2.3. Creating sequence for synthesis de novo <a id="denovo"></a>
+
+
+```
+project = vb.vector_create_on_dict(metadata, input_dict, show_plot=True)
+```
+
+
+    This function change provided by user metadata into two types of predicted sequences:
+            -expression (artificial gene - mRNA)
+            -RNAi (silencing - siRNA/shRNA)
+
+
+    Args:
+       metadata (dict) - matadata loaded in the load_metadata() function
+       input_dict (dict) - dictionary of metadata provided by the user
+
+
+    Examples:
+        -expression (mRNA)
+        -RNAi (siRNA/shRNA)
+
+
+        Avaiable on https://github.com/jkubis96/JBioSeqTools
+        If you have any problem, don't hesitate to contact us!
+
+    Args
+        show_plot (bool) - if True the plot will be displayed, if False only the graph will be returned to the project. Default: True
+
+
+    Returns:
+        dict: Dictionary including all vector data (graphs, sequences, fasta) created based on user definition
+       
+
+
+<br />
+
+
+#### 2.3.1 Creating sequence prediction of mRNA for de novo synthesis <a id="denovo-mrna"></a>
+
+##### Empty input dictionary schema:
+
+
+```
+
+input_dict = {
+    
+    # REQUIRED!
+    # name of current project (defined by user)
+    'project_name':'',
+
+    # REQUIRED!
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
+    # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
+    'species':'',
+
+    # REQUIRED!
+    # string of coding sequence (CDS) provided to optimize sequence
+    # sequences orientation 5' ---> 3' - sense
+    'sequences':[''],
+    # REQUIRED!
+    # name of coding sequences
+    'sequence_name':'',
+
+    # OPTIONAL!
+    # restriction enzymes protection of transcript sequences
+    # if the user does not need any restriction places protection, provide empty list []
+    'restriction_list':[],
+    
+    # REQUIRED!
+    # available options (True / False)
+    # decision; if the user wants the transcription sequences optimized based on the provided species
+    'optimize':True,
+
+    # REQUIRED; if optimize == True!
+    # user-defined percent of GC% content in predicted/optimized sequence
+    'transcript_GC':58,
+
+    # REQUIRED; if optimize == True!
+    # user-defined maximum number of consecutive repeats of a single nucleotide (A, C, T(U), G) in the predicted/optimized sequence, eg. AAAAAA
+    'poly_len':7
+    
+}
+```
+
+
+<br />
+
+
+##### Example dictionary:
+
+
+
+```
+input_dict = {
+
+    'project_name':'test_mRNA',
+    'species':'human',
+    'sequence':'ATGTTAACTAGTGGACTTGTAGTAAGCAACATGTTCTCCTATCATCTCGCAGCCTTGGGACTCATGCCGTCATTCCAGATGGAAGGGCGAGGTCGAGTTAATCAGCTAGGAGGTGTTTTCATTAATGGACGGCCACTGCCCAACCATATACGACTGAAGATTGTCGAGCTAGCGGCCCAGGGCGTCCGTCCGTGCGTCATCAGTAGACAGCTGCGGGTGTCACATGGCTGTGTCAGTAAAATACTCCAACGATATCAAGAAACCGGAAGTATCCGACCTGGGGTTATTGGCGGAAGTAAACCAAGGGTCGCAACTCCGGAAGTTGAGAAAAAGATAGAACAATACAAAAAAGATAATCCGGGAATTTTCAGTTGGGAGATTCGGGATCGGCTGCTGAAGGAGGGGATTTGTGACCGCAGCACCGTGCCAAGTGTGAGCTCCATCAGTCGAGTATTACGGAGCAGGTTCCAGAAATGTGATTCTGATGACAATGACAATGACAATGACAATGAGGACGACGATGGCGATGACGGCAGTAACAGTAGTGTGGCAGACAGGTCTGTTAACTTCTCTGTCAGCGGTCTGCTGTCCGACAATAAAAGCGACAAAAGCGACAACGATTCCGATTGTGAATCAGAGCCGGGGCTATCTGTAAAACGGAAGCAACGCCGCAGTCGAACTACTTTCACCGCGGAGCAGTTGGAGGAACTGGAAAGAGCCTTTGAACGAACTCACTATCCGGATATATATACGCGAGAGGAATTAGCACAAAGAACAAAGCTAACCGAGGCAAGAGTCCAAGTATGGTTTAGTAACCGAAGAGCGAGATGGCGGAAACAGATGGGTAGCAATCAGCTGACAGCCTTGAACAGTATATTACAAGTGCCACAGGGTATGGGAACGCCCTCTTATATGCTGCACGAGCCTGGGTATCCACTCTCACATAATGCAGACAATCTTTGGCATAGATCGTCTATGGCCCAGTCATTACAGTCATTTGGTCAGACAATAAAACCAGAGAATTCCTACGCCGGTCTTATGGAAAACTATTTATCTCATTCATCACAGCTTCATGGTCTTCCTACACATAGTTCATCCGATCCCCTCTCATCCACTTGGTCATCTCCCGTGTCCACTTCCGTTCCTGCGCTAGGATACACGCCATCTAGTGGCCATTACCATCATTACTCTGATGTCACCAAAAGTACTCTTCATTCATATAACGCTCATATTCCTTCAGTCACAAACATGGAGAGATGTTCAGTTGATGACAGTTTGGTTGCTTTACGTATGAAGTCACGTGAGCATTCCGCCGCTCTCAGTTTGATGCAGGTGGCAGACAACAAAATGGCTACCTCATTTTGA',
+    'sequence_name':'SMN1',
+    'restriction_list':['RsaI', 'MnlI', 'AciI', 'AluI', 'BmrI'],
+    'optimize':True,
+    'transcript_GC':58,
+    'poly_len':7
+    
+}
+```
+<br />
+
+##### Output:
+
+```
+# Name of project
+project['project']
+```
+
+``` 
+# Sequences
+# Input sequence
+project['transcripts']['sequences']['sequence']
+# Predicted structure - input
+project['transcripts']['sequences']['sequence_figure']
+
+# Optimized sequence
+project['transcripts']['sequences']['optimized_sequence']
+# Predicted structure - optimized
+project['transcripts']['sequences']['optimized_sequence_figure']
+
+```
+
+<br />
+
+Example return:
+
+* Otimized sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/optimized_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Input sequence structure:
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/5a8ad11279e3bd88f1238f2869845b274a43b1b1/fig/input_sequence_structure.svg" alt="drawing" width="600" />
+</p>
+
+<br />
+
+* Alternative options:
+
+``` 
+# Sequences results and metadata
+
+# optimized sequence - main
+project['transcripts']['sequences']
+
+# optimized sequence - alternatives
+project['transcripts']['alternative']
+
+# additional variant 1 
+project['transcripts']['alternative']['var0]
+
+# additional variant 2
+project['transcripts']['alternative']['var1]
+```
+
+<br />
+
+Example return:
+
+```
+>Optimized sequence - main
+ATGCTGACCAGCGGATTGGTTGTGAGCAACATGTTCAGCTACCACCTGGCCGCCCTGGGATTGATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAACCAGTTGGGAGGAGTGTTTATCAACGGCCGGCCTCTGCCTAATCACATCCGGCTGAAAATCGTGGAGTTGGCCGCTCAGGGAGTTAGGCCTTGTGTGATTAGCAGGCAGCTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGCGGTACCAGGAGACCGGCTCTATCAGGCCTGGAGTGATTGGCGGCTCTAAACCCAGGGTGGCTACACCTGAAGTGGAAAAGAAGATCGAGCAGTACAAGAAGGACAACCCCGGCATCTTCAGCTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACAGAAGCACCGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGGAGCAGATTTCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGATAGGTCTGTGAACTTCAGCGTGAGCGGCCTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGACTGTCTGTGAAACGGAAGCAGAGAAGGAGCAGAACAACCTTCACAGCTGAACAGCTGGAGGAACTGGAGAGGGCCTTTGAGAGGACACACTACCCTGATATCTACACCCGGGAAGAGCTGGCTCAGAGAACAAAGTTGACCGAGGCCAGAGTTCAGGTGTGGTTCAGCAACCGGAGGGCCAGATGGAGAAAGCAGATGGGCTCTAACCAGTTGACCGCTCTGAATAGCATCCTGCAGGTGCCCCAGGGAATGGGAACACCTAGCTACATGCTGCACGAGCCCGGATACCCTTTGTCTCACAACGCCGATAACCTGTGGCACAGGTCTAGCATGGCTCAGTCTCTGCAGAGCTTCGGACAGACAATCAAGCCCGAGAACAGCTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATAGCAGCAGCGACCCTTTGTCTTCTACCTGGTCTAGCCCTGTGTCTACCTCTGTGCCTGCTCTGGGATATACCCCTTCTAGCGGACACTATCACCACTACAGCGACGTGACCAAGTCTACCCTGCACAGCTACAACGCCCACATCCCCTCTGTGACCAACATGGAGCGGTGCAGCGTGGACGACTCTCTGGTGGCTCTGAGAATGAAAAGCCGGGAGCACAGCGCCGCCCTGTCTTTGATGCAGGTGGCCGATAACAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 1
+ATGCTGACCAGCGGCCTGGTTGTGAGCAACATGTTCTCTTACCACCTGGCCGCTCTGGGATTAATGCCTTCTTTTCAGATGGAGGGCAGGGGCAGAGTGAATCAGTTAGGAGGAGTGTTTATTAACGGCAGGCCTTTACCTAATCACATTCGGCTGAAAATCGTGGAGTTAGCTGCTCAGGGAGTTAGACCTTGTGTGATCAGCAGGCAGTTGAGAGTGTCTCACGGATGTGTGTCTAAAATCCTGCAGAGATACCAGGAGACAGGCAGCATCAGGCCTGGAGTGATTGGAGGCTCTAAACCCAGAGTGGCTACACCTGAAGTGGAGAAAAAGATCGAGCAATACAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACAGGTTGCTGAAGGAGGGAATCTGTGATAGGTCTACAGTGCCTTCTGTGTCTAGCATCAGCAGGGTGTTGAGAAGCAGATTCCAGAAATGCGACAGCGACGATAACGACAACGACAACGACAACGAGGACGACGACGGCGATGATGGCTCTAATAGCAGCGTGGCCGATAGATCTGTGAACTTCAGCGTGAGCGGATTGCTGTCTGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGTCTGAGCCTGGACTGTCTGTTAAACGGAAGCAGAGGAGGAGCAGAACAACATTCACAGCCGAGCAGTTGGAGGAACTGGAGAGGGCCTTTGAGAGAACCCACTATCCCGATATCTACACCAGGGAAGAACTGGCTCAGAGAACAAAACTGACCGAGGCCAGAGTTCAGGTGTGGTTTAGCAACCGGAGGGCCAGATGGAGAAAACAGATGGGCAGCAACCAGTTAACAGCCCTGAACAGCATCCTGCAGGTGCCTCAAGGAATGGGAACACCTTCTTATATGCTGCACGAGCCTGGATATCCTTTATCTCATAACGCCGATAACCTGTGGCACAGGTCTTCTATGGCTCAATCTCTGCAGTCTTTCGGACAGACAATTAAGCCCGAGAACTCTTACGCCGGATTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGACTGCCTACACATTCTTCTAGCGACCCTTTATCTTCTACATGGTCTAGCCCTGTGTCTACATCTGTGCCTGCTCTGGGATATACACCTTCTTCTGGCCACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCATTCTTACAACGCCCACATTCCCAGCGTGACCAACATGGAGCGGTGCTCTGTGGATGACAGCTTAGTGGCTCTGAGAATGAAAAGCAGGGAACACTCTGCTGCTCTGTCTTTAATGCAGGTGGCCGATAATAAGATGGCCACCTCTTTCTGA
+
+>Optimized sequence - alternative variant 2
+ATGCTGACCAGCGGATTGGTGGTGAGCAACATGTTCTCTTACCACCTGGCTGCTCTGGGCCTGATGCCCTCTTTCCAGATGGAGGGCCGGGGCAGGGTGAATCAGTTGGGCGGAGTGTTTATCAACGGCCGGCCCCTGCCTAATCACATCCGGCTGAAGATCGTGGAGTTGGCTGCTCAGGGAGTGAGACCCTGCGTGATCAGCCGGCAGTTGAGGGTGTCTCACGGATGTGTGAGCAAGATCCTGCAGAGATACCAGGAGACCGGCAGCATCCGGCCCGGAGTGATTGGCGGCTCTAAGCCCAGGGTGGCTACACCTGAAGTGGAGAAGAAGATCGAGCAGTATAAGAAGGACAACCCCGGCATCTTCTCTTGGGAGATCCGGGACCGGCTGCTGAAGGAGGGCATCTGCGACCGGAGCACCGTGCCCAGCGTGAGCAGCATCAGCCGGGTGCTGCGGAGCCGGTTCCAGAAGTGCGACAGCGACGACAACGACAACGACAACGACAACGAGGACGACGACGGCGACGACGGCAGCAACAGCAGCGTGGCCGACCGGAGCGTGAACTTCAGCGTGAGCGGCCTGCTGAGCGACAACAAGAGCGACAAGAGCGACAACGACAGCGACTGCGAGAGCGAGCCCGGCCTGAGCGTGAAGCGGAAGCAGCGGCGGAGCCGGACCACCTTCACCGCTGAGCAGTTGGAGGAGTTGGAGCGGGCCTTCGAGCGGACCCACTACCCCGACATCTACACCCGGGAGGAGTTGGCCCAGCGGACCAAGTTGACCGAGGCCCGGGTGCAGGTGTGGTTCAGCAACCGGCGGGCCAGATGGAGGAAACAGATGGGCAGCAACCAGTTGACCGCTCTGAACAGCATCCTGCAGGTGCCCCAGGGCATGGGCACCCCTTCTTACATGCTGCACGAGCCCGGATACCCTTTGAGCCACAACGCCGACAACCTGTGGCACCGGAGCAGCATGGCCCAGAGCCTGCAGTCTTTCGGCCAGACCATCAAGCCCGAGAACTCTTACGCCGGCCTGATGGAGAACTACCTGAGCCACAGCAGCCAGTTGCACGGCCTGCCCACCCACAGCAGCAGCGACCCCCTGAGCAGCACCTGGAGCAGCCCTGTGTCTACCAGCGTGCCTGCTCTGGGATATACCCCCAGCAGCGGACACTATCACCACTACAGCGACGTGACCAAGAGCACCCTGCACTCTTACAACGCCCACATCCCCAGCGTGACCAACATGGAGCGGTGCAGCGTGGACGACAGCCTGGTGGCCCTGCGGATGAAGAGCCGGGAGCACAGCGCTGCTCTGAGCCTGATGCAGGTGGCCGACAACAAGATGGCCACCTCTTTCTGA
+```
+
+<br />
+
+
+#### 2.3.2 Creating plasmid vector of in-vitro transcription of RNAi <a id="denovo-rnai"></a>
+
+##### Empty input dictionary schema:
+
+
+```
+input_dict = {
+
+    # REQUIRED!
+    # name of current project (defined by user)
+    'project_name':'',
+
+    # REQUIRED!
+    # avaiable options (human / mouse / rat / both (mouse + human) / both2 (rat + human) / multi (mouse + rat + human))
+    # 'both / both2 / multi' - creating vector function adjusted for all species taking into consideration most adjustments for Homo sapiens
+    'species':'human',
+
+    # REQUIRED!
+    # type of RNAi (defined by user)
+    # avaiable options 'sh' - for shRNA and 'sirna' for siRNA
+    'rnai_type':'',
+
+    # OPTIONAL!
+    # sequence of custom RNAi, which can be provided by user
+    # if provided, then the algorithm of RNAi estimation is off
+    # if empt '' the algorithm share the best possible RNAi based on 'rnai_gene_name'
+    # sequence orientation 5' ---> 3' - sense
+    'rnai_sequence':'',
+
+    # REQUIRED; if rnai_sequence is empty!
+    # length of RNAi (defined by user)
+    # recomended range: 20–25
+    'rnai_length':20,
+
+    # OPTIONAL; if rnai_sequence is empty!
+    # overhang sequence of RNAi sequence 3' end (defined by user)
+    # recomended 'UU'
+    'overhang_3_prime':'UU',
+
+    # REQUIRED!
+    # name of the target gene for the RNAi searching algorithm (gene name for Homo sapien / Mus musculus / Rattus norvegicus)
+    # algorithm is working when the rnai_sequence is empty ''
+    # if the user defines 'rnai_sequence' this 'rnai_gene_name' is just a name for a user-supplied sequence
+    'rnai_gene_name':'',
+
+    # REQUIRED, if rnai_type = 'sh'!
+    # sequence of the loop to create the structure of the hairpin of shRNA 
+    # sequence orientation 5' ---> 3' - sense
+    'loop_sequence':''
+}
+```
+
+
+<br />
+
+
+##### Example dictionary:
+
+
+
+```
+# siRNA
+
+input_dict = {
+
+    'project_name':'test_siRNA',
+    'species':'human',
+    'rnai_type':'sirna',
+    'rnai_sequence':'',
+    'rnai_length':20,
+    'overhang_3_prime':'UU',
+    'rnai_gene_name':'KIT',
+    'loop_sequence':''
+}
+
+
+# shRNA
+
+input_dict = {
+
+    'project_name':'test_shRNA',
+    'species':'human',
+    'rnai_type':'sh',
+    'rnai_sequence':'',
+    'rnai_length':20,
+    'overhang_3_prime':'UU',
+    'rnai_gene_name':'KIT',
+    'loop_sequence':'TAGTGAAGCCACAGATGTAC'
+}
+```
+<br />
+
+##### Output:
+
+```
+# Name of project
+project['project']
+```
+
+
+
+<br />
+
+```
+# Top 1 designed RNAi 
+# RNAi name
+project['rnai']['name']
+
+# RNAi sequence
+project['rnai']['sequence']
+
+# RNAi prediction structure
+rnai_prediction = project['rnai']['figure']
+rnai_prediction.savefig('rnai_predicted_structure.svg')
+```
+
+<br />
+
+Example return:
+
+* shRNA
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/9d834a0e62f77504fc59e89291d4fa342f78a49e/fig/rnai_sh.svg" alt="drawing" width="600" />
+</p>
+
+
+* siRNA
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JBioSeqTools/9d834a0e62f77504fc59e89291d4fa342f78a49e/fig/rnai_sirnai.svg" alt="drawing" width="600" />
+</p>
+
+
+
+```
+# other selected RNAi with statistics
+
+pd.DataFrame(project['rnai']['full_data'])
+```
+
+##### Examples with structure description presented in:
+ - 1.23. [Prediction of RNAi on the provided sequence](#rnai-prediction) 
+ - 1.24. [Correcting of RNAi_data for complementarity to the loop sequence](#correcting-loop) 
+
+
+<br />
+<br />
+
+
+#### 2.4. Creating vector plasmid from FASTA - display existing or custom editing FASTA file <a id="vector-fasta"></a>
 
 ##### FASTA stucture for prepare custom vector
 
@@ -2073,7 +2676,7 @@ pd.DataFrame(project['rnai']['full_data'])
 <br />
 
 
-#### 2.3.1 Loading fasta from the file <a id="fasta2-loading"></a>
+#### 2.4.1 Loading fasta from the file <a id="fasta2-loading"></a>
 
 ```
 fasta_string = vb.load_fasta(path)
@@ -2092,7 +2695,7 @@ fasta_string = vb.load_fasta(path)
 
 <br />
 
-#### 2.3.2 Converting the FASTA string to the data frame <a id="fasta-df"></a>
+#### 2.4.2 Converting the FASTA string to the data frame <a id="fasta-df"></a>
 
 ```
 df_fasta = vb.decode_fasta_to_dataframe(fasta_string)
@@ -2110,7 +2713,7 @@ df_fasta = vb.decode_fasta_to_dataframe(fasta_string)
 
 <br />
 
-#### 2.3.3 Decoding FASTA information <a id="headers"></a>
+#### 2.4.3 Decoding FASTA information <a id="headers"></a>
 
 ```
 df_fasta = vb.extract_fasta_info(df_fasta)
@@ -2145,7 +2748,7 @@ df_fasta = vb.extract_fasta_info(df_fasta)
 
 <br />
 
-#### 2.3.4 Creating graph of the plasmid vector <a id="graph"></a>
+#### 2.4.4 Creating graph of the plasmid vector <a id="graph"></a>
 
 ```
 graph = vb.plot_vector(df_fasta, title = None, title_size = 20, show_plot = True)
@@ -2276,7 +2879,7 @@ graph.savefig('example_graph.svg)
 
 
 
-#### 2.3.5 Writing FASTA format of the plasmid vector <a id="wrfa"></a>
+#### 2.4.5 Writing FASTA format of the plasmid vector <a id="wrfa"></a>
 
 ```
 vb.write_fasta(fasta_string, path = None, name = 'fasta_file')
@@ -2298,7 +2901,7 @@ vb.write_fasta(fasta_string, path = None, name = 'fasta_file')
 
 
 
-#### 2.3.6 Converting FASTA format to GeneBank format <a id="cvfagb"></a>
+#### 2.4.6 Converting FASTA format to GeneBank format <a id="cvfagb"></a>
 
 ```
 gb_format = vb.get_genebank(df_fasta, 
@@ -2613,7 +3216,7 @@ ORIGIN
 
 
 
-#### 2.3.7 Writing GeneBank format of the plasmid vector <a id="wrgb"></a>
+#### 2.4.7 Writing GeneBank format of the plasmid vector <a id="wrgb"></a>
 
 ```
 vb.write_genebank(gb_format, path = None, name = 'viral_vector')
