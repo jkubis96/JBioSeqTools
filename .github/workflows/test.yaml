@@ -27,4 +27,4 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest jbst/tests/tests.py --maxfail=0 --disable-warnings -q 
+          pytest tests/test.py --maxfail=0 --disable-warnings -q 
