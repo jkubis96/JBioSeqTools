@@ -2373,17 +2373,17 @@ input_dict = {
     # sequences orientation 5' ---> 3' - sense
     'sequences':[''],
     # REQUIRED!
-    # name of coding sequences
+    # name of coding sequence
     'sequence_name':'',
 
     # OPTIONAL!
-    # restriction enzymes protection of transcript sequences
+    # restriction enzymes protection of transcript sequence
     # if the user does not need any restriction places protection, provide empty list []
     'restriction_list':[],
     
     # REQUIRED!
     # available options (True / False)
-    # decision; if the user wants the transcription sequences optimized based on the provided species
+    # decision; if the user wants the transcription sequence optimized based on the provided species
     'optimize':True,
 
     # REQUIRED; if optimize == True!
