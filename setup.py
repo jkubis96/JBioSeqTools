@@ -15,7 +15,7 @@ setup(
         long_description=LONG_DESCRIPTION,
         packages=['jbst'],
         include_package_data=True,
-        install_requires=['pandas', 'tqdm', 'matplotlib', 'numpy', 'requests', 'openpyxl', 'pymsaviz==0.4.2', 'ViennaRNA==2.6.4', 'biopython==1.81', 'networkx==3.1', 'seaborn', 'scipy', 'gdown==5.2.0'],       
+        install_requires=['setuptools', 'pandas', 'tqdm', 'matplotlib', 'numpy', 'requests', 'openpyxl', 'pymsaviz==0.4.2', 'ViennaRNA==2.6.4', 'biopython==1.81', 'networkx==3.1', 'seaborn', 'scipy', 'gdown==5.2.0'],       
         keywords=['sequence', 'optimization', 'vectors', 'AAV', 'GC', 'restriction enzyme', 'therapies', 'design','genetic'],
         license = 'MIT',
         classifiers = [
