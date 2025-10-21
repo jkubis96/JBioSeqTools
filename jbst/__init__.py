@@ -1,7 +1,7 @@
 print()
 
 
-pattern = """
+pattern = r"""
            _  ____   _         _____              _
           | ||  _ \ (_)       / ____|            | |
           | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___
@@ -15,7 +15,7 @@ pattern = """
 print(pattern)
 
 print("")
-print("Welcome in JBioSeqTools v.2.1.0 library")
+print("Welcome in JBioSeqTools v.2.1.1 library")
 print("")
 print("Loading required packages...")
 

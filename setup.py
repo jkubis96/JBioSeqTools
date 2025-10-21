@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-VERSION = '2.1.0' 
+VERSION = '2.1.1' 
 DESCRIPTION = 'jbioseqtools'
 LONG_DESCRIPTION = Path("README.md").read_text(encoding="utf-8")
 
