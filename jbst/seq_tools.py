@@ -166,7 +166,7 @@ def sequences_decode(refseq_sequences):
         return None
 
 
-def get_sequences_gene(gene_name: str, species: str = "human", max_results: int = 20):
+def get_sequences_gene(gene_name: str, species: str = "human", max_results: int = 100):
     """
     This function gets sequences from NCBI database based on gene name & species
 
@@ -1970,16 +1970,19 @@ def FindRNAi(
             df["GC%"] = None
 
             for i in df.index:
-                
+
                 if None in df["target"][i]:
                     df["target"][i] = [y for y in df["target"][i] if y is not None]
-                    df["target_seq"][i] = [y for y in df["target_seq"][i] if y is not None]
-                    df["target_gene_name"][i] = [y for y in df["target_gene_name"][i] if y is not None]
+                    df["target_seq"][i] = [
+                        y for y in df["target_seq"][i] if y is not None
+                    ]
+                    df["target_gene_name"][i] = [
+                        y for y in df["target_gene_name"][i] if y is not None
+                    ]
                     df["species"][i] = [y for y in df["species"][i] if y is not None]
                     df["e-value"][i] = [y for y in df["e-value"][i] if y == y]
                     df["bit_score"][i] = [y for y in df["bit_score"][i] if y == y]
 
-                       
                 df["specificity"][i] = len(
                     set([x.upper() for x in df["target_gene_name"][i]])
                 )

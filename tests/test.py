@@ -27,7 +27,7 @@ def test_load_metadata_reduced():
 # get_sequences_gene
 @pytest.mark.parametrize("species", ["human", "mouse", "rat", "both", "both2", "multi"])
 def test_get_sequences_gene(species):
-    assert st.get_sequences_gene("SMN1", species=species, max_results=20) is not None
+    assert st.get_sequences_gene("SMN1", species=species, max_results=100) is not None
 
 
 # get_sequences_accesion
@@ -37,14 +37,14 @@ def test_get_sequences_accesion():
 
 # generate fasta
 def test_generate_and_write_fasta():
-    res = st.get_sequences_gene("SMN1", species="both", max_results=20)
+    res = st.get_sequences_gene("SMN1", species="both", max_results=100)
     fasta = st.generate_fasta_string(res)
     assert fasta is not None
 
 
 # alignment
 def test_alignment_pipeline():
-    res = st.get_sequences_gene("SMN1", species="both", max_results=20)
+    res = st.get_sequences_gene("SMN1", species="both", max_results=100)
     fasta = st.generate_fasta_string(res)
     aln = st.MuscleMultipleSequenceAlignment(
         fasta, output=None, gapopen=10, gapextend=0.5
@@ -57,7 +57,7 @@ def test_alignment_pipeline():
 
 # display alignment
 def test_display_alignment():
-    res = st.get_sequences_gene("SMN1", species="both", max_results=20)
+    res = st.get_sequences_gene("SMN1", species="both", max_results=100)
     fasta = st.generate_fasta_string(res)
     aln = st.MuscleMultipleSequenceAlignment(
         fasta, output=None, gapopen=10, gapextend=0.5

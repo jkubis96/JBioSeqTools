@@ -32,7 +32,7 @@ else:
 
 # Test3
 
-test_res1 = st.get_sequences_gene('SMN1', species = 'human', max_results = 20)
+test_res1 = st.get_sequences_gene('SMN1', species = 'human', max_results = 100)
 if test_res1 != None:
     print('\nTest3 passed!')
 else:
@@ -40,7 +40,7 @@ else:
     
 # Test4
 
-test_res2 = st.get_sequences_gene('SMN1', species = 'mouse', max_results = 20)
+test_res2 = st.get_sequences_gene('SMN1', species = 'mouse', max_results = 100)
 if test_res2 != None:
     print('\nTest4 passed!')
 else:
@@ -48,7 +48,7 @@ else:
     
 # Test5
     
-test_res3 = st.get_sequences_gene('SMN1', species = 'rat', max_results = 20)
+test_res3 = st.get_sequences_gene('SMN1', species = 'rat', max_results = 100)
 if test_res3 != None:
     print('\nTest5 passed!')
 else:
@@ -57,7 +57,7 @@ else:
     
 # Test6
     
-test_res4 = st.get_sequences_gene('SMN1', species = 'both', max_results = 20)
+test_res4 = st.get_sequences_gene('SMN1', species = 'both', max_results = 100)
 if test_res4 != None:
     print('\nTest6 passed!')
 else:
@@ -65,7 +65,7 @@ else:
     
 # Test7
     
-test_res5 = st.get_sequences_gene('SMN1', species = 'both2', max_results = 20)
+test_res5 = st.get_sequences_gene('SMN1', species = 'both2', max_results = 100)
 if test_res5 != None:
     print('\nTest7 passed!')
 else:
@@ -73,7 +73,7 @@ else:
     
 # Test8
     
-test_res6 = st.get_sequences_gene('SMN1', species = 'multi', max_results = 20)
+test_res6 = st.get_sequences_gene('SMN1', species = 'multi', max_results = 100)
 if test_res6 != None:
     print('\nTest8 passed!')
 else:
