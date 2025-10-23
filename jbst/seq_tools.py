@@ -1737,15 +1737,46 @@ def FindRNAi(
             complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
             self_complementary_regions = []
 
-            for i in range(len(sequence) - min_length + 1):
-                for j in range(i + min_length, len(sequence) + 1):
-                    subsequence = sequence[i:j]
-                    reverse_complement = "".join(
-                        complement[base] for base in subsequence[::-1]
-                    )
+            max_range = len(sequence)
 
-                    if subsequence == reverse_complement:
-                        self_complementary_regions.append(subsequence)
+            while True:
+
+                min_range = min_length
+
+                intervals = list(range(min_range, max_range + 1, 1))
+
+                if min_range + min_length <= max(intervals):
+                    for i in intervals:
+                        if i + min_length <= max_range:
+                            pre_seq = sequence[0:i]
+                            post_seq = sequence[i : i + min_length][::-1]
+                            post_seq_complement = "".join(
+                                [complement[x] for x in post_seq]
+                            )
+
+                            if post_seq_complement in pre_seq:
+                                self_complementary_regions.append(
+                                    (post_seq_complement, post_seq)
+                                )
+
+                        else:
+                            break
+
+                    min_length += 1
+
+                else:
+                    break
+
+            # unification
+            self_complementary_regions = [
+                x
+                for x in self_complementary_regions
+                if all(
+                    x[0] not in y[0] and x[1] not in y[1]
+                    for y in self_complementary_regions
+                    if y != x
+                )
+            ]
 
             return self_complementary_regions
 
@@ -2008,8 +2039,9 @@ def FindRNAi(
                     df["RNAi_seq"][i], max_repeat_len
                 )[1]
                 df["GC%"][i] = round(
-                    df["RNAi_seq"][i].count("C")
-                    + df["RNAi_seq"][i].count("G") / len(df["RNAi_seq"][i]) * 100,
+                    (df["RNAi_seq"][i].count("C") + df["RNAi_seq"][i].count("G"))
+                    / len(df["RNAi_seq"][i])
+                    * 100,
                     2,
                 )
 
@@ -2054,14 +2086,39 @@ def loop_complementary_adjustment(
             complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
             complementary_regions = []
 
-            for i in range(len(sequence) - len(loop_seq) + 1):
-                subsequence = sequence[i : i + len(loop_seq)]
-                reverse_complement = "".join(
-                    complement[base] for base in subsequence[::-1]
-                )
+            max_range = len(sequence)
 
-                if reverse_complement == loop_seq:
-                    complementary_regions.append((i, i + len(loop_seq)))
+            while True:
+
+                intervals = list(range(0, max_range + 1, 1))
+
+                if min_length <= max(intervals):
+                    for i in intervals:
+                        if i + min_length <= max_range:
+                            seq = sequence[i : i + min_length][::-1]
+                            seq_complement = "".join([complement[x] for x in seq])
+
+                            if seq_complement in loop_seq:
+                                complementary_regions.append((seq_complement, seq))
+
+                        else:
+                            break
+
+                    min_length += 1
+
+                else:
+                    break
+
+            # unification
+            complementary_regions = [
+                x
+                for x in complementary_regions
+                if all(
+                    x[0] not in y[0] and x[1] not in y[1]
+                    for y in complementary_regions
+                    if y != x
+                )
+            ]
 
             return complementary_regions
 
@@ -2071,14 +2128,14 @@ def loop_complementary_adjustment(
         RNAi_data["antisense_loop_complementary_pct"] = None
 
         for i in RNAi_data.index:
-            RNAi_data["sense_loop_complementary"][i] = list(
-                set(
-                    loop_complementary(RNAi_data["RNAi_sense"][i], loop_seq, min_length)
-                )
+            RNAi_data["sense_loop_complementary"][i] = loop_complementary(
+                RNAi_data["RNAi_sense"][i], loop_seq, min_length
             )
+
             amount = 0
+
             for l in RNAi_data["sense_loop_complementary"][i]:
-                amount = amount + len(l)
+                amount = amount + len(l[0])
 
             try:
                 RNAi_data["sense_loop_complementary_pct"][i] = amount / len(
@@ -2090,6 +2147,7 @@ def loop_complementary_adjustment(
             RNAi_data["antisense_loop_complementary"][i] = list(
                 set(loop_complementary(RNAi_data["RNAi_seq"][i], loop_seq, min_length))
             )
+
             amount = 0
             for l in RNAi_data["antisense_loop_complementary"][i]:
                 amount = amount + len(l)
@@ -2125,7 +2183,7 @@ def loop_complementary_adjustment(
 
 
 def remove_specific_to_sequence(
-    RNAi_data: pd.DataFrame, sequences, min_length: int = 4
+    RNAi_data: pd.DataFrame, sequences, min_length: int = 7
 ):
     """
     This function takes output DataFrame from Find RNAi() or loop_complementary_adjustment() reducing the RNAi score on their complementarity to the provided external genetic sequence. eg sequence after codon optimization which is not included in NCBI ref_seq db.
@@ -2150,14 +2208,49 @@ def remove_specific_to_sequence(
             complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
             complementary_regions = []
 
-            for i in range(len(seq1) - len(seq2) + 1):
-                subsequence = seq1[i : i + len(seq2)]
-                reverse_complement = "".join(
-                    complement[base] for base in subsequence[::-1]
-                )
+            max_range = len(seq1)
 
-                if reverse_complement == seq2:
-                    complementary_regions.append((i, i + len(seq2)))
+            while True:
+
+                intervals = list(range(0, max_range + 1, 1))
+
+                if min_length <= max(intervals):
+                    for i in intervals:
+                        if i + min_length <= max_range:
+                            seq = seq1[i : i + min_length][::-1]
+                            seq_ver2 = seq1[i : i + min_length]
+
+                            seq_complement = "".join([complement[x] for x in seq])
+                            seq_ver2_complement = "".join(
+                                [complement[x] for x in seq_ver2]
+                            )
+
+                            if seq_complement in seq2:
+                                complementary_regions.append((seq_complement, seq))
+
+                            if seq_ver2_complement in seq2:
+                                complementary_regions.append(
+                                    (seq_ver2_complement, seq_ver2)
+                                )
+
+                        else:
+                            break
+
+                    min_length += 1
+
+                else:
+                    break
+
+            # unification
+            complementary_regions = [
+                x
+                for x in complementary_regions
+                if all(
+                    x[0] not in y[0] and x[1] not in y[1]
+                    for y in complementary_regions
+                    if y != x
+                )
+            ]
 
             return complementary_regions
 
