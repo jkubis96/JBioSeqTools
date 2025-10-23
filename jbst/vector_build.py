@@ -98,7 +98,7 @@ def rnai_selection_to_vector(
             seq,
             metadata,
             length=length,
-            n=500,
+            n=1500,
             max_repeat_len=3,
             species=species,
             output=None,

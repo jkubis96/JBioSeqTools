@@ -1608,7 +1608,7 @@ def FindRNAi(
     sequence: str,
     metadata,
     length: int = 23,
-    n: int = 200,
+    n: int = 1500,
     max_repeat_len: int = 3,
     max_off: int = 1,
     species: str = "human",
@@ -2017,6 +2017,10 @@ def FindRNAi(
                 df["specificity"][i] = len(
                     set([x.upper() for x in df["target_gene_name"][i]])
                 )
+
+                if df["specificity"][i] == 0:
+                    df["specificity"][i] = 1
+
                 df["complemenatry_regions"][i] = list(
                     set(find_self_complementarity(df["RNAi_seq"][i], min_length=3))
                 )
