@@ -1398,7 +1398,7 @@ def compare_sequences(
         f2 = sequence_2[i : i + sep]
 
         if f1 != f2:
-            position.append("-".join(list(set([str(i + 1), str(i + sep)]))))
+            position.append("-".join(sorted(list(set([str(i + 1), str(i + sep)])))))
             change.append("".join(f1) + " -> " + "".join(f2))
 
     results = {"position": position, "change": change}
@@ -2183,7 +2183,7 @@ def loop_complementary_adjustment(
 
 
 def remove_specific_to_sequence(
-    RNAi_data: pd.DataFrame, sequences, min_length: int = 7
+    RNAi_data: pd.DataFrame, sequences, min_length: int = 10
 ):
     """
     This function takes output DataFrame from Find RNAi() or loop_complementary_adjustment() reducing the RNAi score on their complementarity to the provided external genetic sequence. eg sequence after codon optimization which is not included in NCBI ref_seq db.

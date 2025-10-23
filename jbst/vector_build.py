@@ -103,7 +103,7 @@ def rnai_selection_to_vector(
             species=species,
             output=None,
             database_name="refseq_select_rna",
-            evalue=10,
+            evalue=1,
             outfmt=5,
             word_size=7,
             max_hsps=20,
@@ -183,7 +183,7 @@ def rnai_selection_to_vector(
                     RNAi_data = remove_specific_to_sequence(
                         RNAi_data,
                         project["transcripts"]["sequences"]["sequence"],
-                        min_length=5,
+                        min_length=10,
                     )
 
                 elif (
@@ -194,7 +194,7 @@ def rnai_selection_to_vector(
                     RNAi_data = remove_specific_to_sequence(
                         RNAi_data,
                         project["transcripts"]["sequences"]["sequence"],
-                        min_length=5,
+                        min_length=10,
                     )
 
             except:
