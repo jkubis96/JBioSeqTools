@@ -1,4 +1,3 @@
-
 print("")
 print("Welcome in JBioSeqTools v.2.1.1 library")
 print("")
