@@ -2316,7 +2316,7 @@ pd.DataFrame(project['rnai']['full_data'])
 
 
 ```
-project = vb.vector_create_on_dict(metadata, input_dict, show_plot=True)
+project = vb.create_sequence_from_dict(metadata, input_dict, show_plot=True)
 ```
 
 
